@@ -1,0 +1,367 @@
+---
+title: |
+  ![](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQto98DCJv_tJBKdzJ3-jc1YNXjFquiff7iSA&s){width=10% height=10%}  
+  Descriptivos iniciales ENUSC
+author: 
+  - Consultor técnico - MVM
+date: "`r format(Sys.Date(), '%m/%d/%Y')`"
+output:
+    bookdown::html_document2:
+          theme: yeti
+          toc: yes
+          toc_float: yes
+          toc_collapsed: yes
+          number_sections: yes
+          
+          
+    
+linkcolor: black
+urlcolor: blue
+execute:
+  echo: false
+  warning: false
+---
+
+```{r packages and data}
+
+# Packages
+pacman::p_load(
+    tidyverse,
+    haven,
+    tidylog,
+    glue,
+    knitr,
+    kableExtra,
+    scales
+)
+# Data
+# load("output/tables/all_tabs.RData")
+load("../../output/tables/all_tabs.RData")
+```
+
+```{r}
+pre_proc_html <- function(x) {
+    # Preprocesamiento
+    x %>%
+        select(-c(pregunta, variable)) %>% # Eliminamos variables redundantes para el html
+        filter(!is.na(val)) %>% # Sacamos la fila de NA
+        mutate(
+            # Pasamos a formato español
+            frq = number(frq, big.mark = ".", decimal.mark = ","),
+            across(c(raw.prc, valid.prc, cum.prc), ~ number(., big.mark = ".", decimal.mark = ",", accuracy = 0.01))
+        ) %>% 
+        select(-starts_with("raw")) %>% # Eliminamos la columna del raw
+        rename(prc = valid.prc)
+}
+
+
+format_kable <- function(x, preproc = TRUE) {
+    # Guardar caption antes de pre-procesar
+    cap <- glue("[{x$variable[[1]]}] {x$pregunta[[1]]}")
+
+    # Pre-procesar tabla para temas de formato
+    if (preproc) {
+        x <- pre_proc_html(x)
+    }
+    # Formato tabla en kable
+    x %>%
+        kable(
+            caption = cap
+        ) %>%
+        kable_styling(
+            bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+            full_width = TRUE
+        )
+}
+
+```
+
+# Introducción
+En este documento se presentan las tablas de frecuencias de las variables inicialmente escogidas para componer la propuesta conceptual.
+
+# Emocional - Personal
+## Durante los últimos doce meses, según su experiencia, ¿qué tan seguro/a se siente...?
+
+::: panel-tabset
+
+# Trasladándose en su vehículo
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_1 %>% format_kable()
+```
+
+# Esperando transporte público
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_2 %>% format_kable()
+```
+
+# Trasladándose en buses o micros de transporte público
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_3 %>% format_kable()
+```
+
+# Trasladándose en taxis o colectivos
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_4 %>% format_kable()
+```
+
+# Trasladándose en vehículos de aplicación, tales como Uber, Cabify, Didi o similar
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_5 %>% format_kable()
+```
+
+# Trasladándose en Metro, Biotrén, Merval o Metrotren
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_6 %>% format_kable()
+```
+
+# En un restaurante, bar, pub, café, discoteque u otro lugar de recreación
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_7 %>% format_kable()
+```
+
+# En un terminal de buses o ferrocarriles
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_8 %>% format_kable()
+```
+
+# En un terminal aéreo o aeropuerto
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_9 %>% format_kable()
+```
+
+# En centros comerciales o malls
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_10 %>% format_kable()
+```
+
+# En una bencinera o servicentro
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_11 %>% format_kable()
+```
+
+# En plazas o parques de su barrio
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_12 %>% format_kable()
+```
+
+# En comercios de su barrio
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_13 %>% format_kable()
+```
+
+# En su lugar de trabajo
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_14 %>% format_kable()
+```
+
+# En su lugar de estudio
+```{r}
+all_tabs$emper$emper_p_inseg_lugares_15 %>% format_kable()
+```
+
+:::
+
+## Durante los últimos doce meses ¿qué tan seguro/a se siente en las siguientes situaciones...?
+
+::: panel-tabset
+
+# Caminando solo/a por su barrio cuando ya está oscuro
+```{r}
+all_tabs$emper$emper_p_inseg_oscuro_1 %>% format_kable()
+```
+
+# Caminando solo/a por su barrio durante el día
+```{r}
+all_tabs$emper$emper_p_inseg_dia_1 %>% format_kable()
+```
+
+# Solo/a en su casa durante el día
+```{r}
+all_tabs$emper$emper_p_inseg_dia_2 %>% format_kable()
+```
+
+# Solo/a en su casa cuando ya está oscuro
+```{r}
+all_tabs$emper$emper_p_inseg_oscuro_2 %>% format_kable()
+```
+:::
+
+# Cognitiva - Personal
+
+## Pensando en la delincuencia, usted diría que durante los últimos doce meses, la delincuencia
+::: panel-tabset
+
+# PAÍS...
+```{r}
+all_tabs$cogper$cogper_p_aumento_pais %>% format_kable()
+```
+
+# COMUNA...
+```{r}
+all_tabs$cogper$cogper_p_aumento_com %>% format_kable()
+```
+
+# BARRIO...
+```{r}
+all_tabs$cogper$cogper_p_aumento_barrio %>% format_kable()
+```
+:::
+
+## Considerando el tipo de actividades que realiza o los lugares por los que transita habitualmente, ¿cree usted que será víctima de algún delito en los próximos doce meses?
+
+```{r}
+all_tabs$cogper$cogper_p_expos_delito %>% select(-categoria) %>% format_kable()
+```
+
+## ¿De qué delito cree usted que será víctima en los próximos doce meses...?
+
+::: panel-tabset
+
+# Robo
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_1 %>% format_kable()
+```
+
+# Robo o hurto de su vehículo o portonazo
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_2 %>% format_kable()
+```
+
+# Robo o hurto de algún objeto dejado dentro del vehículo o parte de él
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_3 %>% format_kable()
+```
+
+# Vandalismo o daño a su vivienda o vehículo
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_4 %>% format_kable()
+```
+
+# Robo o asalto, como robo con violencia, cogoteo, robo por sorpresa o lanzazo
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_5 %>% format_kable()
+```
+
+# Hurto
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_6 %>% format_kable()
+```
+
+# Agresiones físicas o lesiones
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_7 %>% format_kable()
+```
+
+# Amenazas o extorsión
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_8 %>% format_kable()
+```
+
+# Delitos económicos como fraude o estafa
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_9 %>% format_kable()
+```
+
+# Delitos cibernéticos
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_10 %>% format_kable()
+```
+
+# Acoso callejero o sexual
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_11 %>% format_kable()
+```
+
+# Otros delitos
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_77 %>% format_kable()
+```
+
+# No sabe
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_88 %>% format_kable()
+```
+
+# No responde
+```{r}
+all_tabs$cogper$cogper_p_delito_pronostico_99 %>% format_kable()
+```
+
+:::
+
+# Comportamental - Personal
+## Durante los últimos doce meses, por temor a ser víctima de algún delito como robo, asalto, agresión u otro, ¿ha dejado de hacer alguna de las siguientes actividades...?
+
+::: panel-tabset
+
+# Caminar solo/a
+```{r}
+all_tabs$comper$comper_p_mod_actividades_1 %>% format_kable()
+```
+
+# Realizar actividades al aire libre
+```{r}
+all_tabs$comper$comper_p_mod_actividades_2 %>% format_kable()
+```
+
+# Usar celular y/o artículos electrónicos en público
+```{r}
+all_tabs$comper$comper_p_mod_actividades_3 %>% format_kable()
+```
+
+# Tomar micros o buses
+```{r}
+all_tabs$comper$comper_p_mod_actividades_4 %>% format_kable()
+```
+
+# Tomar taxis o colectivos
+```{r}
+all_tabs$comper$comper_p_mod_actividades_5 %>% format_kable()
+```
+
+# Tomar o usar Uber, Cabify, Didi o similares
+```{r}
+all_tabs$comper$comper_p_mod_actividades_6 %>% format_kable()
+```
+
+# Caminar por ciertas áreas o lugares
+```{r}
+all_tabs$comper$comper_p_mod_actividades_7 %>% format_kable()
+```
+
+# Salir de noche
+```{r}
+all_tabs$comper$comper_p_mod_actividades_8 %>% format_kable()
+```
+
+# Usar joyas, reloj u objetos de lujo
+```{r}
+all_tabs$comper$comper_p_mod_actividades_9 %>% format_kable()
+```
+
+# Ir al banco
+```{r}
+all_tabs$comper$comper_p_mod_actividades_10 %>% format_kable()
+```
+
+# Llevar o usar dinero en efectivo
+```{r}
+all_tabs$comper$comper_p_mod_actividades_11 %>% format_kable()
+```
+
+# Realizar actividades deportiva, de recreación o esparcimiento en recintos cerrados
+```{r}
+all_tabs$comper$comper_p_mod_actividades_12 %>% format_kable()
+```
+
+# Manejar vehículos, motos y/o estacionar fuera de la vivienda
+```{r}
+all_tabs$comper$comper_p_mod_actividades_13 %>% format_kable()
+```
+
+# Otra actividad
+```{r}
+all_tabs$comper$comper_p_mod_actividades_14 %>% format_kable()
+```
+
+###
