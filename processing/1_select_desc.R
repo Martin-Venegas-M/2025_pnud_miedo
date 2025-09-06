@@ -80,25 +80,26 @@ rm(emper, cogper, comper, comgen)
 # tab_frq1(var = emper_p_inseg_lugares_1, verbose = TRUE, sep_verbose = FALSE, sort.frq = "desc")
 # tab_frq2(var = emper_p_inseg_lugares_1, verbose = TRUE, sep_verbose = TRUE, vartype = c("se", "ci"))
 
+# Vectores de variables
+dim_names <- c("emper", "cogper", "comper")
+
+emper_vars <- enusc %>%
+    select(starts_with("emper")) %>%
+    names()
+cogper_vars <- enusc %>%
+    select(starts_with("cogper")) %>%
+    names()
+comper_vars <- enusc %>%
+    select(starts_with("comper")) %>%
+    names()
+
 # Iterar!
-
-emper_tabs <- map(
-    enusc %>% select(starts_with("emper")) %>% names(),
-    ~ tab_frq1(var = {{ .x }})
-)
-
-cogper_tabs <- map(
-    enusc %>% select(starts_with("cogper")) %>% names(),
-    ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|en su|en el)\\s*")
-)
-
-comper_tabs <- map(
-    enusc %>% select(starts_with("comper")) %>% names(),
-    ~ tab_frq1(var = {{ .x }})
-)
+emper_tabs <- map(emper_vars, ~ tab_frq1(var = {{ .x }})) %>% set_names(emper_vars)
+cogper_tabs <- map(cogper_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|en su|en el)\\s*")) %>% set_names(cogper_vars)
+comper_tabs <- map(comper_vars, ~ tab_frq1(var = {{ .x }})) %>% set_names(comper_vars)
 
 # Guardar todas
-all_tabs <- list(emper_tabs, cogper_tabs, comper_tabs)
+all_tabs <- list(emper_tabs, cogper_tabs, comper_tabs) %>% set_names(dim_names)
 
 # 4.  Save things ----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -107,8 +108,8 @@ saveRDS(enusc, "input/data/proc/enusc.RDS")
 
 # Guardar tablas en excel
 map2(
-    c(1:3),
-    c("emper", "cogper", "comper"),
+    c(1:3), 
+    dim_names,
     ~ format_tab_excel(all_tabs[[.x]] %>% list_rbind(), path = glue("output/tables/{date}_{.y}_tab_format.xlsx", sheet = .y))
 )
 
