@@ -22,8 +22,8 @@ pacman::p_load(
     sjPlot,
     janitor,
     glue,
-    survey,
-    srvyr
+    srvyr,
+    openxlsx
 )
 
 # 2. Load data and functions ----------------------------------------------------------------------------------------------------------------------------
@@ -33,6 +33,10 @@ pacman::p_load(
 
 enusc_original <- readRDS("input/data/original/base-de-datos---enusc-2024.RDS")
 source("processing/helpers/functions.R")
+
+# Declarar fecha y usuario
+date <- format(Sys.Date(), "%y%m%d")
+user <- tolower(Sys.info()["user"])
 
 # 3. Select variables -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -64,12 +68,50 @@ enusc <- enusc_original %>%
     rename_with(~ glue("comgen_{.x}"), matches(comgen)) %>%
     clean_names()
 
+rm(emper, cogper, comper, comgen)
+
 # 4. Descriptivos iniciales ------------------------------------------------------------------------------------------------------------------------------
 
 # Crear objeto encuesta
-enusc_svy <- enusc %>%
-    as_survey_design(ids = conglomerado, stata = varstrat, weights = fact_pers_reg)
+# enusc_svy <- enusc %>%
+#     as_survey_design(ids = conglomerado, stata = varstrat, weights = fact_pers_reg)
 
 # Probar funciones
-tab_frq1(var = emper_p_inseg_lugares_1, verbose = TRUE, sort.frq = "desc")
-tab_frq2(var = emper_p_inseg_lugares_1, verbose = TRUE, vartype = c("se", "ci"))
+# tab_frq1(var = emper_p_inseg_lugares_1, verbose = TRUE, sep_verbose = FALSE, sort.frq = "desc")
+# tab_frq2(var = emper_p_inseg_lugares_1, verbose = TRUE, sep_verbose = TRUE, vartype = c("se", "ci"))
+
+# Iterar!
+
+emper_tabs <- map(
+    enusc %>% select(starts_with("emper")) %>% names(),
+    ~ tab_frq1(var = {{ .x }})
+)
+
+cogper_tabs <- map(
+    enusc %>% select(starts_with("cogper")) %>% names(),
+    ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|en su|en el)\\s*")
+)
+
+comper_tabs <- map(
+    enusc %>% select(starts_with("comper")) %>% names(),
+    ~ tab_frq1(var = {{ .x }})
+)
+
+# Guardar todas
+all_tabs <- list(emper_tabs, cogper_tabs, comper_tabs)
+
+# 4.  Save things ----------------------------------------------------------------------------------------------------------------------------------------
+
+# Guardar bbdd enusc
+saveRDS(enusc, "input/data/proc/enusc.RDS")
+
+# Guardar tablas en excel
+map2(
+    c(1:3),
+    c("emper", "cogper", "comper"),
+    ~ format_tab_excel(all_tabs[[.x]] %>% list_rbind(), path = glue("output/tables/{date}_{.y}_tab_format.xlsx", sheet = .y))
+)
+
+# Guardar lista con las tablas
+rm(list = ls()[!ls() %in% c("all_tabs")])
+save.image("output/tables/all_tabs.RData")
