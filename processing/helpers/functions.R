@@ -127,3 +127,17 @@ format_tab_excel <- function(df, path, sheet = "Tabla", var_col = "variable") {
 
 # Test
 # format_tab_excel(emper_tabs, path = "empr_tabs_formateada.xlsx", sheet = "EMPER")
+
+# Formateo español para excel
+pre_proc_excel <- function(x) {
+    # Preprocesamiento
+    x %>%
+        filter(!is.na(val)) %>% # Sacamos la fila de NA
+        mutate(
+            # Pasamos a formato español
+            frq = number(frq, big.mark = ".", decimal.mark = ","),
+            across(c(raw.prc, valid.prc, cum.prc), ~ number(., big.mark = ".", decimal.mark = ",", accuracy = 0.01))
+        ) %>% 
+        select(-starts_with("raw")) %>% # Eliminamos la columna del raw
+        rename(prc = valid.prc)
+}

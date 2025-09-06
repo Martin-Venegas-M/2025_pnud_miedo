@@ -110,7 +110,7 @@ saveRDS(enusc, "input/data/proc/enusc.RDS")
 map2(
     c(1:3), 
     dim_names,
-    ~ format_tab_excel(all_tabs[[.x]] %>% list_rbind(), path = glue("output/tables/{date}_{.y}_tab_format.xlsx", sheet = .y))
+    ~ format_tab_excel(all_tabs[[.x]] %>% list_rbind() %>% pre_proc_excel(), path = glue("output/tables/{date}_{.y}_tab_format.xlsx", sheet = .y))
 )
 
 # Guardar lista con las tablas
