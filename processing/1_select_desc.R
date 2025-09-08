@@ -1,10 +1,10 @@
 #******************************************************************************************************************************************************
 # 0. Identification -------------------------------------------------------
-# Title: Selección y recodificación
+# Title: Selección y descriptivos iniciales
 # Institution: PNUD
 # Responsable: Consultor técnico - MVM
 # Executive Summary: Este script contiene el código para un procesamiento inicial de los datos
-# Date: August 18, 2025
+# Date: 8 de septiembre de 2025
 #******************************************************************************************************************************************************
 
 rm(list = ls())
@@ -23,7 +23,8 @@ pacman::p_load(
     janitor,
     glue,
     srvyr,
-    openxlsx
+    openxlsx,
+    scales
 )
 
 # 2. Load data and functions ----------------------------------------------------------------------------------------------------------------------------
@@ -60,12 +61,20 @@ enusc <- enusc_original %>%
     select(
         rph_ID, idhogar, enc_region, Conglomerado, VarStrat, starts_with("Fact"),
         matches(emper), matches(cogper), matches(comper), matches(comgen),
-        starts_with("rph")) %>%
+        starts_with("rph")
+    ) %>%
     rename_with(~ glue("emper_{.x}"), matches(emper)) %>%
     rename_with(~ glue("cogper_{.x}"), matches(cogper)) %>%
     rename_with(~ glue("comper_{.x}"), matches(comper)) %>%
     rename_with(~ glue("comgen_{.x}"), matches(comgen)) %>%
-    clean_names()
+    clean_names() %>%
+    rename("comper_costos_medidas" = comgen_comper_costos_medidas) %>% # ! PARCHE: Ya que se trabaja con regex laxos, COSTOS_MEDIDAS se renombra dos veces, quedando con dos sufijos.
+    mutate(
+        comgen_vecinos_adoptadas_privad = set_label(
+            .$comgen_vecinos_adoptadas_privad,
+            label = "¿Cuál/es de estas medidas adoptó en los últimos doce meses junto a sus vecinos? Tenemos contratados vigilantes privados"
+        )
+    ) # ! PARCHE: Fix label.
 
 rm(emper, cogper, comper, comgen)
 
@@ -89,23 +98,25 @@ cogper_vars <- enusc %>%
     select(starts_with("cogper")) %>%
     names()
 comper_vars <- enusc %>%
-    select(starts_with("comper"), "comper_costos_medidas") %>% # Por alguna razón no agrega esa var
+    select(starts_with("comper")) %>%
     names()
 comgen_vars <- enusc %>%
-  select(starts_with("comgen"), -comgen_medidas_na, -comgen_medidas_ns, -comgen_medidas_nr,
-                     -comgen_adoptadas_na, -comgen_adoptadas_otro, -comgen_vecinos_medidas_na,
-                     -comgen_vecinos_medidas_ns, -comgen_medidas_nr, -comgen_vecinos_adoptadas_na) %>%
-  names()
+    select(
+        starts_with("comgen"), -comgen_medidas_na, -comgen_medidas_ns, -comgen_medidas_nr,
+        -comgen_adoptadas_na, -comgen_adoptadas_otro, -comgen_vecinos_medidas_na,
+        -comgen_vecinos_medidas_ns, -comgen_medidas_nr, -comgen_vecinos_adoptadas_na
+    ) %>%
+    names()
 
 # Iterar! # no genera bien algunas tablas - revisar
 emper_tabs <- map(emper_vars, ~ tab_frq1(var = {{ .x }})) %>% set_names(emper_vars)
 cogper_tabs <- map(cogper_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|en su|en el)\\s*")) %>% set_names(cogper_vars)
 comper_tabs <- map(comper_vars, ~ tab_frq1(var = {{ .x }})) %>% set_names(comper_vars)
-comgen_tabs <- map(comgen_vars, ~ tab_frq1(var = {{ .x }})) %>% set_names(comgen_vars)
+comgen_tabs <- map(comgen_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|\\.)\\s*")) %>% set_names(comgen_vars)
 
 
 # Guardar todas
-all_tabs <- list(emper_tabs, cogper_tabs, comper_tabs) %>% set_names(dim_names)
+all_tabs <- list(emper_tabs, cogper_tabs, comper_tabs, comgen_tabs) %>% set_names(dim_names)
 
 # 4.  Save things ----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -114,7 +125,7 @@ saveRDS(enusc, "input/data/proc/enusc.RDS")
 
 # Guardar tablas en excel
 map2(
-    c(1:3), 
+    seq_along(all_tabs),
     dim_names,
     ~ format_tab_excel(all_tabs[[.x]] %>% list_rbind() %>% pre_proc_excel(), path = glue("output/tables/{date}_{.y}_tab_format.xlsx", sheet = .y))
 )
