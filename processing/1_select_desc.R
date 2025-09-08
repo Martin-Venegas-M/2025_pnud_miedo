@@ -52,7 +52,7 @@ user <- tolower(Sys.info()["user"])
 
 emper <- "P_INSEG"
 cogper <- "P_EXPOS_DELITO|P_DELITO_PRONOSTICO|P_AUMENTO"
-comper <- "P_MOD_ACTIVIDADES|COSTO_MEDIDAS"
+comper <- "P_MOD_ACTIVIDADES|COSTOS_MEDIDAS"
 comgen <- "MEDIDAS|ADOPTADAS|VECINOS_MEDIDAS|VECINOS_ADOPTADAS"
 
 enusc <- enusc_original %>%
@@ -60,8 +60,7 @@ enusc <- enusc_original %>%
     select(
         rph_ID, idhogar, enc_region, Conglomerado, VarStrat, starts_with("Fact"),
         matches(emper), matches(cogper), matches(comper), matches(comgen),
-        starts_with("rph")
-    ) %>%
+        starts_with("rph")) %>%
     rename_with(~ glue("emper_{.x}"), matches(emper)) %>%
     rename_with(~ glue("cogper_{.x}"), matches(cogper)) %>%
     rename_with(~ glue("comper_{.x}"), matches(comper)) %>%
@@ -81,7 +80,7 @@ rm(emper, cogper, comper, comgen)
 # tab_frq2(var = emper_p_inseg_lugares_1, verbose = TRUE, sep_verbose = TRUE, vartype = c("se", "ci"))
 
 # Vectores de variables
-dim_names <- c("emper", "cogper", "comper")
+dim_names <- c("emper", "cogper", "comper", "comgen")
 
 emper_vars <- enusc %>%
     select(starts_with("emper")) %>%
@@ -90,13 +89,20 @@ cogper_vars <- enusc %>%
     select(starts_with("cogper")) %>%
     names()
 comper_vars <- enusc %>%
-    select(starts_with("comper")) %>%
+    select(starts_with("comper"), "comper_costos_medidas") %>% # Por alguna razón no agrega esa var
     names()
+comgen_vars <- enusc %>%
+  select(starts_with("comgen"), -comgen_medidas_na, -comgen_medidas_ns, -comgen_medidas_nr,
+                     -comgen_adoptadas_na, -comgen_adoptadas_otro, -comgen_vecinos_medidas_na,
+                     -comgen_vecinos_medidas_ns, -comgen_medidas_nr, -comgen_vecinos_adoptadas_na) %>%
+  names()
 
-# Iterar!
+# Iterar! # no genera bien algunas tablas - revisar
 emper_tabs <- map(emper_vars, ~ tab_frq1(var = {{ .x }})) %>% set_names(emper_vars)
 cogper_tabs <- map(cogper_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|en su|en el)\\s*")) %>% set_names(cogper_vars)
 comper_tabs <- map(comper_vars, ~ tab_frq1(var = {{ .x }})) %>% set_names(comper_vars)
+comgen_tabs <- map(comgen_vars, ~ tab_frq1(var = {{ .x }})) %>% set_names(comgen_vars)
+
 
 # Guardar todas
 all_tabs <- list(emper_tabs, cogper_tabs, comper_tabs) %>% set_names(dim_names)
