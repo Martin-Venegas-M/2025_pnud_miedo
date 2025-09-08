@@ -186,31 +186,12 @@ all_tabs$emper$emper_p_inseg_oscuro_2 %>% format_kable()
 ```
 :::
 
-# Cognitiva - Personal
-
-## Pensando en la delincuencia, usted diría que durante los últimos doce meses, la delincuencia
-::: panel-tabset
-
-# PAÍS...
-```{r}
-all_tabs$cogper$cogper_p_aumento_pais %>% format_kable()
-```
-
-# COMUNA...
-```{r}
-all_tabs$cogper$cogper_p_aumento_com %>% format_kable()
-```
-
-# BARRIO...
-```{r}
-all_tabs$cogper$cogper_p_aumento_barrio %>% format_kable()
-```
-:::
+# Perceptual - Personal
 
 ## Considerando el tipo de actividades que realiza o los lugares por los que transita habitualmente, ¿cree usted que será víctima de algún delito en los próximos doce meses?
 
 ```{r}
-all_tabs$cogper$cogper_p_expos_delito %>% select(-categoria) %>% format_kable()
+all_tabs$perper$perper_p_expos_delito %>% select(-categoria) %>% format_kable()
 ```
 
 ## ¿De qué delito cree usted que será víctima en los próximos doce meses...?
@@ -219,74 +200,94 @@ all_tabs$cogper$cogper_p_expos_delito %>% select(-categoria) %>% format_kable()
 
 # Robo
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_1 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_1 %>% format_kable()
 ```
 
 # Robo o hurto de su vehículo o portonazo
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_2 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_2 %>% format_kable()
 ```
 
 # Robo o hurto de algún objeto dejado dentro del vehículo o parte de él
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_3 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_3 %>% format_kable()
 ```
 
 # Vandalismo o daño a su vivienda o vehículo
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_4 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_4 %>% format_kable()
 ```
 
 # Robo o asalto, como robo con violencia, cogoteo, robo por sorpresa o lanzazo
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_5 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_5 %>% format_kable()
 ```
 
 # Hurto
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_6 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_6 %>% format_kable()
 ```
 
 # Agresiones físicas o lesiones
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_7 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_7 %>% format_kable()
 ```
 
 # Amenazas o extorsión
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_8 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_8 %>% format_kable()
 ```
 
 # Delitos económicos como fraude o estafa
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_9 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_9 %>% format_kable()
 ```
 
 # Delitos cibernéticos
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_10 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_10 %>% format_kable()
 ```
 
 # Acoso callejero o sexual
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_11 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_11 %>% format_kable()
 ```
 
 # Otros delitos
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_77 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_77 %>% format_kable()
 ```
 
 # No sabe
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_88 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_88 %>% format_kable()
 ```
 
 # No responde
 ```{r}
-all_tabs$cogper$cogper_p_delito_pronostico_99 %>% format_kable()
+all_tabs$perper$perper_p_delito_pronostico_99 %>% format_kable()
+```
+:::
+
+# Perceptual - General
+
+## Pensando en la delincuencia, usted diría que durante los últimos doce meses, la delincuencia
+::: panel-tabset
+
+# PAÍS...
+```{r}
+all_tabs$pergen$pergen_p_aumento_pais %>% format_kable()
 ```
 
+# COMUNA...
+```{r}
+all_tabs$pergen$pergen_p_aumento_com %>% format_kable()
+```
+
+# BARRIO...
+```{r}
+all_tabs$pergen$pergen_p_aumento_barrio %>% format_kable()
+```
 :::
 
 # Comportamental - Personal
@@ -363,5 +364,188 @@ all_tabs$comper$comper_p_mod_actividades_13 %>% format_kable()
 ```{r}
 all_tabs$comper$comper_p_mod_actividades_14 %>% format_kable()
 ```
+:::
 
-###
+## En los últimos doce meses ¿cuánto dinero en total ha gastado su hogar en medidas de seguridad
+
+```{r}
+all_tabs$comper$comper_costos_medidas %>% select(-categoria) %>% format_kable()
+```
+
+# Comportamental - General
+
+## Indique él o los elementos de seguridad que dispone su vivienda o edificio
+
+::: panel-tabset
+# Perro u otro animal con fines de protección del inmueble
+```{r}
+all_tabs$comgen$comgen_medidas_perro %>% format_kable()
+```
+
+# Alarma instalada por empresa de seguridad
+```{r}
+all_tabs$comgen$comgen_medidas_alarma_privada %>% format_kable()
+```
+
+# Cámaras de vigilancia
+```{r}
+all_tabs$comgen$comgen_medidas_camaras_vigilancia %>% format_kable()
+```
+
+# Cerco eléctrico en reja o muro perimetral de la propiedad
+```{r}
+all_tabs$comgen$comgen_medidas_cerco %>% format_kable()
+```
+
+# Rejas u otro tipo de protecciones en puertas y ventanas
+```{r}
+all_tabs$comgen$comgen_medidas_rejas %>% format_kable()
+```
+
+# Protecciones no eléctricas en reja o muro de la propiedad
+```{r}
+all_tabs$comgen$comgen_medidas_proteccion %>% format_kable()
+```
+
+# Seguro de cadena y/o cerradura de seguridad
+```{r}
+all_tabs$comgen$comgen_medidas_seguro %>% format_kable()
+```
+
+# Foco lumínico con sensor de movimiento
+```{r}
+all_tabs$comgen$comgen_medidas_foco %>% format_kable()
+```
+
+# Otro elemento de seguridad
+```{r}
+all_tabs$comgen$comgen_medidas_otro %>% format_kable()
+```
+:::
+
+## ¿Cuál de estas medidas adoptó en los últimos doce meses
+
+::: panel-tabset
+# Perro u otro animal con fines de protección del inmueble
+```{r}
+all_tabs$comgen$comgen_adoptadas_perro %>% format_kable()
+```
+
+# Alarma instalada por empresa de seguridad
+```{r}
+all_tabs$comgen$comgen_adoptadas_alarma_privada %>% format_kable()
+```
+
+# Cámaras de vigilancia
+```{r}
+all_tabs$comgen$comgen_adoptadas_camaras_vigilancia %>% format_kable()
+```
+
+# Cerco eléctrico en reja o muro perimetral de la propiedad
+```{r}
+all_tabs$comgen$comgen_adoptadas_cerco %>% format_kable()
+```
+
+# Rejas u otro tipo de protecciones en puertas y ventanas
+```{r}
+all_tabs$comgen$comgen_adoptadas_rejas %>% format_kable()
+```
+
+# Protecciones no eléctricas en reja o muro de la propiedad
+```{r}
+all_tabs$comgen$comgen_adoptadas_proteccion %>% format_kable()
+```
+
+# Seguro de cadena y/o cerradura de seguridad
+```{r}
+all_tabs$comgen$comgen_adoptadas_seguro %>% format_kable()
+```
+
+# Foco lumínico con sensor de movimiento
+```{r}
+all_tabs$comgen$comgen_adoptadas_foco %>% format_kable()
+```
+:::
+
+##  ¿Cuál/es de las siguientes medidas ha adoptado en conjunto a las personas de su barrio / cuadra / block para sentirse más seguros?
+
+::: panel-tabset
+# Tenemos un grupo de WhatsApp u otra red
+```{r}
+all_tabs$comgen$comgen_vecinos_medidas_whatsapp %>% format_kable()
+```
+
+# Tenemos un sistema de vigilancia entre las personas del barrio
+```{r}
+all_tabs$comgen$comgen_vecinos_medidas_vigilancia %>% format_kable()
+```
+
+# Tenemos un sistema de alarma comunitaria
+```{r}
+all_tabs$comgen$comgen_vecinos_medidas_al_comunit %>% format_kable()
+```
+
+# Hemos hablado con las policías para coordinar medidas de seguridad
+```{r}
+all_tabs$comgen$comgen_vecinos_medidas_coord_pol %>% format_kable()
+```
+
+# Hemos hablado con agentes del municipio para coordinar medidas de seguridad
+```{r}
+all_tabs$comgen$comgen_vecinos_medidas_coord_mun %>% format_kable()
+```
+
+# Tenemos un sistema de cámaras de televigilancia
+```{r}
+all_tabs$comgen$comgen_vecinos_medidas_televig %>% format_kable()
+```
+
+# Tenemos contratados vigilantes privados
+```{r}
+all_tabs$comgen$comgen_vecinos_medidas_privad %>% format_kable()
+```
+
+# No responde
+```{r}
+all_tabs$comgen$comgen_vecinos_medidas_nr %>% format_kable()
+```
+:::
+
+## ¿Cuál/es de estas medidas adoptó en los últimos doce meses junto a sus vecinos?
+
+::: panel-tabset
+# Tenemos un grupo de WhatsApp u otra red
+```{r}
+all_tabs$comgen$comgen_vecinos_adoptadas_whatsapp %>% format_kable()
+```
+
+# Tenemos un sistema de vigilancia entre las personas del barrio
+```{r}
+all_tabs$comgen$comgen_vecinos_adoptadas_vigilancia %>% format_kable()
+```
+
+# Tenemos un sistema de alarma comunitaria
+```{r}
+all_tabs$comgen$comgen_vecinos_adoptadas_al_comunit %>% format_kable()
+```
+
+# Hemos hablado con las policías para coordinar medidas de seguridad
+```{r}
+all_tabs$comgen$comgen_vecinos_adoptadas_coord_pol %>% format_kable()
+```
+
+# Hemos hablado con agentes del municipio para coordinar medidas de seguridad
+```{r}
+all_tabs$comgen$comgen_vecinos_adoptadas_coord_mun %>% format_kable()
+```
+
+# Tenemos un sistema de cámaras de televigilancia
+```{r}
+all_tabs$comgen$comgen_vecinos_adoptadas_televig %>% format_kable()
+```
+
+# Tenemos contratados vigilantes privados
+```{r}
+all_tabs$comgen$comgen_vecinos_adoptadas_privad %>% format_kable()
+```
+:::
