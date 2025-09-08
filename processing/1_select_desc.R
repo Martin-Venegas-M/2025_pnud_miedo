@@ -45,14 +45,15 @@ user <- tolower(Sys.info()["user"])
 # 1a. EMOCIONAL- PERSONAL (emper) = P_EXPOS_DELITO (P4), P_INSEG (P3) -> Contextos en los que las personas se sienten inseguras
 # 1b EMOCIONAL- GENERAL (emgen) = ?
 
-# 2a. COGNITIVA/PERCEPCTUAL- PERSONAL (cogper) = P_EXPOS_DELITO (P7), P_DELITO_PRONOSTICO (P8), P_AUMENTO (P1) -> Percepción de la probabilidad de ser victima de delito o de aumentos de delito
-# 2b. COGNITIVA/PERCEPTUAL - GENERAL (coggen) = ?
+# 2a. COGNITIVA/PERCEPCTUAL- PERSONAL (cogper) = P_EXPOS_DELITO (P7), P_DELITO_PRONOSTICO (P8) -> Percepción de la probabilidad de ser victima de delito o de aumentos de delito
+# 2b. COGNITIVA/PERCEPTUAL - GENERAL (coggen) = P_AUMENTO (P1)
 
 # 3a. COMPORTAMIENTO - PERSONAL (comper) = P_MOD_ACTIVIDADES (P9), COSTOS_MEDIDAS (MDC6)
-# 3b. COMPORTAMIENTO - GENERAL (comgen) =  ANTIG_SECTOR (MDC1), MEDIDAS (MDC2), ADOPTADAS (MDC3), VECINOS (MDC4),VECINOS_ADOPTADAS (MDC5)
+# 3b. COMPORTAMIENTO - GENERAL (comgen) =  ANTIG_SECTOR (MDC1), MEDIDAS (MDC2), ADOPTADAS (MDC3), VECINOS (MDC4), VECINOS_ADOPTADAS (MDC5)
 
 emper <- "P_INSEG"
-cogper <- "P_EXPOS_DELITO|P_DELITO_PRONOSTICO|P_AUMENTO"
+cogper <- "P_EXPOS_DELITO|P_DELITO_PRONOSTICO"
+coggen <- "P_AUMENTO"
 comper <- "P_MOD_ACTIVIDADES|COSTOS_MEDIDAS"
 comgen <- "MEDIDAS|ADOPTADAS|VECINOS_MEDIDAS|VECINOS_ADOPTADAS"
 
@@ -60,11 +61,12 @@ enusc <- enusc_original %>%
     filter(Kish == 1) %>% # ! IMPORTANTE
     select(
         rph_ID, idhogar, enc_region, Conglomerado, VarStrat, starts_with("Fact"),
-        matches(emper), matches(cogper), matches(comper), matches(comgen),
+        matches(emper), matches(cogper), matches(coggen), matches(comper), matches(comgen),
         starts_with("rph")
     ) %>%
     rename_with(~ glue("emper_{.x}"), matches(emper)) %>%
     rename_with(~ glue("cogper_{.x}"), matches(cogper)) %>%
+    rename_with(~ glue("coggen_{.x}"), matches(coggen)) %>%
     rename_with(~ glue("comper_{.x}"), matches(comper)) %>%
     rename_with(~ glue("comgen_{.x}"), matches(comgen)) %>%
     clean_names() %>%
@@ -89,13 +91,16 @@ rm(emper, cogper, comper, comgen)
 # tab_frq2(var = emper_p_inseg_lugares_1, verbose = TRUE, sep_verbose = TRUE, vartype = c("se", "ci"))
 
 # Vectores de variables
-dim_names <- c("emper", "cogper", "comper", "comgen")
+dim_names <- c("emper", "cogper", "coggen", "comper", "comgen")
 
 emper_vars <- enusc %>%
     select(starts_with("emper")) %>%
     names()
 cogper_vars <- enusc %>%
     select(starts_with("cogper")) %>%
+    names()
+coggen_vars <- enusc %>%
+    select(starts_with("coggen")) %>%
     names()
 comper_vars <- enusc %>%
     select(starts_with("comper")) %>%
@@ -111,17 +116,18 @@ comgen_vars <- enusc %>%
 # Iterar! # no genera bien algunas tablas - revisar
 emper_tabs <- map(emper_vars, ~ tab_frq1(var = {{ .x }})) %>% set_names(emper_vars)
 cogper_tabs <- map(cogper_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|en su|en el)\\s*")) %>% set_names(cogper_vars)
+coggen_tabs <- map(coggen_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|en su|en el)\\s*")) %>% set_names(coggen_vars)
 comper_tabs <- map(comper_vars, ~ tab_frq1(var = {{ .x }})) %>% set_names(comper_vars)
 comgen_tabs <- map(comgen_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|\\.)\\s*")) %>% set_names(comgen_vars)
 
 
 # Guardar todas
-all_tabs <- list(emper_tabs, cogper_tabs, comper_tabs, comgen_tabs) %>% set_names(dim_names)
+all_tabs <- list(emper_tabs, cogper_tabs, coggen_tabs, comper_tabs, comgen_tabs) %>% set_names(dim_names)
 
 # 4.  Save things ----------------------------------------------------------------------------------------------------------------------------------------
 
 # Guardar bbdd enusc
-saveRDS(enusc, "input/data/proc/enusc.RDS")
+saveRDS(enusc, "input/data/proc/enusc_1_select_desc.RDS")
 
 # Guardar tablas en excel
 map2(
