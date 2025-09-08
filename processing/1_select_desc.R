@@ -45,15 +45,15 @@ user <- tolower(Sys.info()["user"])
 # 1a. EMOCIONAL- PERSONAL (emper) = P_EXPOS_DELITO (P4), P_INSEG (P3) -> Contextos en los que las personas se sienten inseguras
 # 1b EMOCIONAL- GENERAL (emgen) = ?
 
-# 2a. COGNITIVA/PERCEPCTUAL- PERSONAL (cogper) = P_EXPOS_DELITO (P7), P_DELITO_PRONOSTICO (P8) -> Percepción de la probabilidad de ser victima de delito o de aumentos de delito
-# 2b. COGNITIVA/PERCEPTUAL - GENERAL (coggen) = P_AUMENTO (P1)
+# 2a. COGNITIVA/PERCEPCTUAL- PERSONAL (perper) = P_EXPOS_DELITO (P7), P_DELITO_PRONOSTICO (P8) -> Percepción de la probabilidad de ser victima de delito o de aumentos de delito
+# 2b. COGNITIVA/PERCEPTUAL - GENERAL (pergen) = P_AUMENTO (P1)
 
 # 3a. COMPORTAMIENTO - PERSONAL (comper) = P_MOD_ACTIVIDADES (P9), COSTOS_MEDIDAS (MDC6)
 # 3b. COMPORTAMIENTO - GENERAL (comgen) =  ANTIG_SECTOR (MDC1), MEDIDAS (MDC2), ADOPTADAS (MDC3), VECINOS (MDC4), VECINOS_ADOPTADAS (MDC5)
 
 emper <- "P_INSEG"
-cogper <- "P_EXPOS_DELITO|P_DELITO_PRONOSTICO"
-coggen <- "P_AUMENTO"
+perper <- "P_EXPOS_DELITO|P_DELITO_PRONOSTICO"
+pergen <- "P_AUMENTO"
 comper <- "P_MOD_ACTIVIDADES|COSTOS_MEDIDAS"
 comgen <- "MEDIDAS|ADOPTADAS|VECINOS_MEDIDAS|VECINOS_ADOPTADAS"
 
@@ -61,12 +61,12 @@ enusc <- enusc_original %>%
     filter(Kish == 1) %>% # ! IMPORTANTE
     select(
         rph_ID, idhogar, enc_region, Conglomerado, VarStrat, starts_with("Fact"),
-        matches(emper), matches(cogper), matches(coggen), matches(comper), matches(comgen),
+        matches(emper), matches(perper), matches(pergen), matches(comper), matches(comgen),
         starts_with("rph")
     ) %>%
     rename_with(~ glue("emper_{.x}"), matches(emper)) %>%
-    rename_with(~ glue("cogper_{.x}"), matches(cogper)) %>%
-    rename_with(~ glue("coggen_{.x}"), matches(coggen)) %>%
+    rename_with(~ glue("perper_{.x}"), matches(perper)) %>%
+    rename_with(~ glue("pergen_{.x}"), matches(pergen)) %>%
     rename_with(~ glue("comper_{.x}"), matches(comper)) %>%
     rename_with(~ glue("comgen_{.x}"), matches(comgen)) %>%
     clean_names() %>%
@@ -78,7 +78,7 @@ enusc <- enusc_original %>%
         )
     ) # ! PARCHE: Fix label.
 
-rm(emper, cogper, comper, comgen)
+rm(emper, perper, comper, comgen)
 
 # 4. Descriptivos iniciales ------------------------------------------------------------------------------------------------------------------------------
 
@@ -91,16 +91,16 @@ rm(emper, cogper, comper, comgen)
 # tab_frq2(var = emper_p_inseg_lugares_1, verbose = TRUE, sep_verbose = TRUE, vartype = c("se", "ci"))
 
 # Vectores de variables
-dim_names <- c("emper", "cogper", "coggen", "comper", "comgen")
+dim_names <- c("emper", "perper", "pergen", "comper", "comgen")
 
 emper_vars <- enusc %>%
     select(starts_with("emper")) %>%
     names()
-cogper_vars <- enusc %>%
-    select(starts_with("cogper")) %>%
+perper_vars <- enusc %>%
+    select(starts_with("perper")) %>%
     names()
-coggen_vars <- enusc %>%
-    select(starts_with("coggen")) %>%
+pergen_vars <- enusc %>%
+    select(starts_with("pergen")) %>%
     names()
 comper_vars <- enusc %>%
     select(starts_with("comper")) %>%
@@ -115,14 +115,14 @@ comgen_vars <- enusc %>%
 
 # Iterar! # no genera bien algunas tablas - revisar
 emper_tabs <- map(emper_vars, ~ tab_frq1(var = {{ .x }})) %>% set_names(emper_vars)
-cogper_tabs <- map(cogper_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|en su|en el)\\s*")) %>% set_names(cogper_vars)
-coggen_tabs <- map(coggen_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|en su|en el)\\s*")) %>% set_names(coggen_vars)
+perper_tabs <- map(perper_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|en su|en el)\\s*")) %>% set_names(perper_vars)
+pergen_tabs <- map(pergen_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|en su|en el)\\s*")) %>% set_names(pergen_vars)
 comper_tabs <- map(comper_vars, ~ tab_frq1(var = {{ .x }})) %>% set_names(comper_vars)
 comgen_tabs <- map(comgen_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|\\.)\\s*")) %>% set_names(comgen_vars)
 
 
 # Guardar todas
-all_tabs <- list(emper_tabs, cogper_tabs, coggen_tabs, comper_tabs, comgen_tabs) %>% set_names(dim_names)
+all_tabs <- list(emper_tabs, perper_tabs, pergen_tabs, comper_tabs, comgen_tabs) %>% set_names(dim_names)
 
 # 4.  Save things ----------------------------------------------------------------------------------------------------------------------------------------
 
