@@ -141,3 +141,31 @@ pre_proc_excel <- function(x) {
         select(-starts_with("raw")) %>% # Eliminamos la columna del raw
         rename(prc = valid.prc)
 }
+
+# ! ADAPTAR
+create_class_index <- function(data, n_class = 6) {
+    # Create reduced dataset for creating new variables
+    data <- data %>%
+        dplyr::select(idencuesta, income_cat_final, educ_cat_final, clase_final) %>%
+        dplyr::mutate(across(income_cat_final:clase_final, ~ sjlabelled::to_label(.)))
+
+    # Run MCA analysis
+    acm <- FactoMineR::MCA(data, quanti.sup = 1, graph = FALSE)
+
+    # Run cluster analysis
+    clust <- FactoMineR::HCPC(acm, nb.clust = n_class, consol = FALSE, graph = FALSE)
+
+    # Save acm scores and clusters in df
+    data <- data %>% mutate(
+        acm_scores1 = acm$ind$coord[, 1],
+        "clusters_{n_class}" := clust$data.clust$clust
+    )
+
+    # Save all
+    results <- list(data = data, acm = acm, clust = clust)
+
+    return(results)
+}
+
+# Test
+# results6 <- map(elsocs, ~ create_class_index(.x, n_class = 6))
