@@ -33,10 +33,10 @@ tab_frq1 <- function(data = enusc, var, w = fact_pers_reg, verbose = TRUE, sep_v
 }
 
 # Tabla frecuencias basada en srvyr - Muestra estimaciones ponderadas y de calidad
-tab_frq2 <- function(svyobj = enusc_svy, var, verbose = TRUE, sep_verbose = TRUE, pattern_verbose = "\\? ", ...) {
+tab_frq2 <- function(svyobj = enusc_svy, grp_var, var, verbose = TRUE, sep_verbose = TRUE, pattern_verbose = "\\? ", ...) {
     # Crear tabla de frecuencias desde del objeto encuesta
     tab <- svyobj %>%
-        srvyr::group_by({{ var }}) %>%
+        srvyr::group_by({{ grp_var }}, {{ var }}) %>%
         srvyr::summarise(
             frq = survey_total(),
             prop = survey_mean(...), # * Se pasan los argumentos por si se quieren otras medidas de calidad para la proporción
@@ -137,7 +137,7 @@ pre_proc_excel <- function(x) {
             # Pasamos a formato español
             frq = number(frq, big.mark = ".", decimal.mark = ","),
             across(c(raw.prc, valid.prc, cum.prc), ~ number(., big.mark = ".", decimal.mark = ",", accuracy = 0.01))
-        ) %>% 
+        ) %>%
         select(-starts_with("raw")) %>% # Eliminamos la columna del raw
         rename(prc = valid.prc)
 }
