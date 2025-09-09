@@ -76,7 +76,7 @@ expr_medidas_alarm_cam <- gen_expr("comgen_medidas", c("alarma_privada", "camara
 expr_vecinos_medidas_alarm_cam <- gen_expr("comgen_vecinos_medidas", c("al_comunit", "televig"))
 
 # ! NOTA: Ahora que ya terminé de aplicar esta estrategia, me doy cuenta que era más tidyverse-friendly crear los vectores de las variables dinamicamente
-# ! con if_any(). De todos modos igual me gusta la estrategia, siento que queda claro el procedimiento :).
+# ! con texto y luego aplicar if_any(). De todos modos igual me gusta la estrategia, siento que queda claro el procedimiento :).
 
 # 3.3 Recodificar ----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -91,7 +91,6 @@ recs <- enusc_rec %>% transmute(
     perper_delito_violento = if_else(!!expr_delito_violento, 1, 0),
     perper_delito_no_violento = if_else(!!expr_delito_no_violento, 1, 0),
     # PERGEN
-    # ! CAMBIAR AQUI perper por pergen
     pergen_pais = if_else(pergen_p_aumento_pais == 1, 1, 0),
     pergen_comuna = if_else(pergen_p_aumento_com == 1, 1, 0),
     pergen_barrio = if_else(pergen_p_aumento_barrio == 1, 1, 0),
@@ -107,7 +106,7 @@ recs <- enusc_rec %>% transmute(
     comgen_vecinos_medidas_alarm_cam = if_else(!!expr_vecinos_medidas_alarm_cam, 1, 0),
     comgen_vecinos_adopta_medidas = if_any(starts_with("comgen_vecinos_adoptadas"), ~ . == 1) %>% as.numeric()
 ) %>%
-    # Recodificaciones de las variables
+    # Recodificaciones de las etiquetas de las variables
     mutate(
         # EMPER
         across(starts_with("emper"), ~ set_label(., c(glue("Inseguridad en {sust(cur_column())}")))),
@@ -127,7 +126,7 @@ recs <- enusc_rec %>% transmute(
         comgen_vecinos_medidas_alarm_cam = set_label(comgen_vecinos_medidas_alarm_cam, "Vecinos disponen de alarmas y camaras comunitarias"),
         comgen_vecinos_adopta_medidas = set_label(comgen_vecinos_adopta_medidas, "Vecinos adoptan alguna medida")
     ) %>%
-    # Recodificaciones de los valores
+    # Recodificaciones de las etiquetas de los valores
     mutate(
         across(everything(), ~ set_labels(., labels = c("Sí" = 1, "No" = 0)))
     )
