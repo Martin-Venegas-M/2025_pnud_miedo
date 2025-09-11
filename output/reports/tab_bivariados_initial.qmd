@@ -44,7 +44,7 @@ enusc <- readRDS("../../input/data/proc/enusc_2_recode.RDS")
 ## Inseguridad en el transporte x Aumento de delincuencia en el barrio
 
 ```{r}
-sjPlot::tab_xtab(enusc$emper_transporte, enusc$pergen_barrio, weight.by = enusc$fact_pers_reg, show.row.prc = TRUE, show.col.prc = TRUE)
+sjPlot::tab_xtab(enusc$emper_transporte, enusc$pergen_barrio, weight.by = enusc$fact_pers_reg, show.cell.prc = TRUE)
 ```
 
 ```{r}
@@ -54,7 +54,7 @@ sjPlot::plot_xtab(enusc$emper_transporte, enusc$pergen_barrio, weight.by = enusc
 ## Inseguridad en el transporte x Aumento de delincuencia en la comuna
 
 ```{r}
-sjPlot::tab_xtab(enusc$emper_transporte, enusc$pergen_comuna, weight.by = enusc$fact_pers_reg, show.row.prc = TRUE, show.col.prc = TRUE)
+sjPlot::tab_xtab(enusc$emper_transporte, enusc$pergen_comuna, weight.by = enusc$fact_pers_reg, show.cell.prc = TRUE)
 ```
 
 ```{r}
@@ -64,7 +64,7 @@ sjPlot::plot_xtab(enusc$emper_transporte, enusc$pergen_comuna, weight.by = enusc
 ## Inseguridad en el transporte x Aumento de delincuencia en el pais
 
 ```{r}
-sjPlot::tab_xtab(enusc$emper_transporte, enusc$pergen_comuna, weight.by = enusc$fact_pers_reg, show.row.prc = TRUE, show.col.prc = TRUE)
+sjPlot::tab_xtab(enusc$emper_transporte, enusc$pergen_comuna, weight.by = enusc$fact_pers_reg, show.cell.prc = TRUE)
 ```
 
 ```{r}
@@ -75,7 +75,7 @@ sjPlot::plot_xtab(enusc$emper_transporte, enusc$pergen_comuna, weight.by = enusc
 
 ## Inseguridad en el transporte x Modificación comportamiento en vida cotidiana
 ```{r}
-sjPlot::tab_xtab(enusc$emper_transporte, enusc$comper_vida_cotidiana, weight.by = enusc$fact_pers_reg, show.row.prc = TRUE, show.col.prc = TRUE)
+sjPlot::tab_xtab(enusc$emper_transporte, enusc$comper_vida_cotidiana, weight.by = enusc$fact_pers_reg, show.cell.prc = TRUE)
 ```
 
 ```{r}
@@ -84,7 +84,7 @@ sjPlot::plot_xtab(enusc$emper_transporte, enusc$comper_vida_cotidiana, weight.by
 
 ## Inseguridad en el transporte x Gasto en medidas de seguridad
 ```{r}
-sjPlot::tab_xtab(enusc$emper_transporte, enusc$comper_gasto_medidas, weight.by = enusc$fact_pers_reg, show.row.prc = TRUE, show.col.prc = TRUE)
+sjPlot::tab_xtab(enusc$emper_transporte, enusc$comper_gasto_medidas, weight.by = enusc$fact_pers_reg, show.cell.prc = TRUE)
 ```
 
 ```{r}
@@ -95,7 +95,7 @@ sjPlot::plot_xtab(enusc$emper_transporte, enusc$comper_gasto_medidas, weight.by 
 
 ## Inseguridad en el transporte x Disposición de alarmas y camaras
 ```{r}
-sjPlot::tab_xtab(enusc$emper_transporte, enusc$comgen_medidas_alarm_cam, weight.by = enusc$fact_pers_reg, show.row.prc = TRUE, show.col.prc = TRUE)
+sjPlot::tab_xtab(enusc$emper_transporte, enusc$comgen_medidas_alarm_cam, weight.by = enusc$fact_pers_reg, show.cell.prc = TRUE)
 ```
 
 ```{r}
@@ -104,7 +104,7 @@ sjPlot::plot_xtab(enusc$emper_transporte, enusc$comgen_medidas_alarm_cam, weight
 
 ## Inseguridad en el transporte x Vecinos con disposición de alarmas y camaras
 ```{r}
-sjPlot::tab_xtab(enusc$emper_transporte, enusc$comgen_vecinos_medidas_alarm_cam, weight.by = enusc$fact_pers_reg, show.row.prc = TRUE, show.col.prc = TRUE)
+sjPlot::tab_xtab(enusc$emper_transporte, enusc$comgen_vecinos_medidas_alarm_cam, weight.by = enusc$fact_pers_reg, show.cell.prc = TRUE)
 ```
 
 ```{r}
