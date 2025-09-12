@@ -28,7 +28,7 @@ pacman::p_load(
 
 # 2. Load data and functions ----------------------------------------------------------------------------------------------------------------------------
 
-enusc <- readRDS("input/data/proc/enusc_2_recode.RDS")
+enusc <- readRDS("input/data/proc/enusc_2_recode_tidy.RDS")
 source("processing/helpers/functions.R")
 enusc_svy <- enusc %>% as_survey_design(ids = conglomerado, stata = varstrat, weights = fact_pers_reg)
 
@@ -52,5 +52,5 @@ results_unweighted <- map(vars_rec, ~ tab_frq1(var = !!sym(.x), w = NULL, verbos
     list_rbind()
 
 # Formatear y guardar tablas
-format_tab_excel(results, path = glue("output/tables/{date}_vars_rec_tab_format.xlsx", sheet = .y))
-format_tab_excel(results_unweighted, path = glue("output/tables/{date}_vars_rec_tab_format_unweighted.xlsx", sheet = .y))
+format_tab_excel(results, path = glue("output/tables/{date}_vars_rec_tab_format_tidy.xlsx", sheet = .y))
+format_tab_excel(results_unweighted, path = glue("output/tables/{date}_vars_rec_tab_format_unweighted_tidy.xlsx", sheet = .y))
