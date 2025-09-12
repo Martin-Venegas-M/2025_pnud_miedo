@@ -45,54 +45,70 @@ enusc_rec <- reduce(
     .init = enusc
 ) %>% select(-ends_with("_na"), -ends_with("_ns"), -ends_with("_nr")) # Eliminar columnas sin info
 
-# 3.1 Crear vectores --------------------------------------------------------------------------------------------------------------------------------------
+# 3.1 Crear funciones de utilidad  -----------------------------------------------------------------------------------------------------------------------
+# Función para crear expresiones desde texto...
+gen_expr <- function(var, n, operator = "==", val = "1", return_all = FALSE) {
+    # Guardar vector de variables a usar en la recodificación
+    vector <- glue("{var}_{n}") %>% as.character()
 
-rec_vars <- list(
-    emper_transporte = paste0("emper_p_inseg_lugares_", 1:6),
-    emper_recreacion = paste0("emper_p_inseg_lugares_", c(7, 10, 12)),
-    emper_barrio = c("emper_p_inseg_oscuro_1", "emper_p_inseg_dia_1"),
-    emper_casa = c("emper_p_inseg_oscuro_2", "emper_p_inseg_dia_2"),
-    perper_delito = list(
-        "perper_p_expos_delito",
-        paste0("perper_p_delito_pronostico_", c(1, 4, 6, 8:11)),
-        paste0("perper_p_delito_pronostico_", c(2, 5, 7))
+    # Guardar expresión para recodificar
+    expr <- glue("{var}_{n} {operator} {val}") %>%
+        paste(., collapse = " | ") %>%
+        parse_expr()
+
+    if (return_all) {
+        all <- list(expr = expr, vector = vector)
+        return(all)
+    } else {
+        return(expr)
+    }
+}
+
+# 3.2 Crear expresiones ----------------------------------------------------------------------------------------------------------------------------------
+
+# Lugar donde se siene inseguridad
+expr_transporte <- gen_expr("emper_p_inseg_lugares", 1:6, "%in%", "c(1:2)")
+expr_recreacion <- gen_expr("emper_p_inseg_lugares", c(7, 10, 12), "%in%", "c(1:2)")
+
+# Probabilidad ser victima de delito
+expr_delito_no_violento <- gen_expr("perper_p_delito_pronostico", c(1, 4, 6, 8:11))
+expr_delito_violento <- gen_expr("perper_p_delito_pronostico", c(2, 5, 7))
+
+# Dejar de hacer cosas
+expr_vida_cotidiana <- gen_expr("comper_p_mod_actividades", c(1:2, 8))
+expr_transporte2 <- gen_expr("comper_p_mod_actividades", c(4:6, 13))
+
+# Medidas (personales y comunitarias)
+expr_medidas_per <- gen_expr("comgen_medidas", c("cerco", "rejas", "proteccion"))
+expr_medidas_comun <- gen_expr("comgen_vecinos_medidas", c("vigilancia", "al_comunit", "coord_pol", "coord_mun", "televig"))
+
+#* NOTA: Ahora que ya terminé de aplicar esta estrategia, me doy cuenta que era más tidyverse-friendly crear los vectores de las variables dinamicamente
+#* con texto y luego aplicar if_any(). De todos modos igual me gusta la estrategia, siento que queda claro el procedimiento :).
+
+# 3.3 Recodificar ----------------------------------------------------------------------------------------------------------------------------------------
+
+recs <- enusc_rec %>% transmute(
+    emper_transporte = if_else(!!expr_transporte, 1, 0),
+    emper_recreacion = if_else(!!expr_recreacion, 1, 0),
+    emper_barrio = if_else(emper_p_inseg_oscuro_1 %in% c(1:2) | emper_p_inseg_dia_1 %in% c(1:2), 1, 0),
+    emper_casa = if_else(emper_p_inseg_oscuro_2 %in% c(1:2) | emper_p_inseg_dia_2 %in% c(1:2), 1, 0),
+    perper_delito = case_when(
+        perper_p_expos_delito == 2 ~ 1, # No cree que será victima de delito
+        !!expr_delito_no_violento ~ 2, # Cree que será victima de un delito no violento
+        !!expr_delito_violento ~ 3, # Cree que será victima de un delito violento
+        TRUE ~ NA
     ),
-    pergen_pais = c("pergen_p_aumento_pais"),
-    pergen_comuna = c("pergen_p_aumento_com"),
-    pergen_barrio = c("pergen_p_aumento_barrio"),
-    comper_vida_cotidiana = paste0("comper_p_mod_actividades_", c(1:2, 8)),
-    comper_transporte = paste0("comper_p_mod_actividades_", c(4:6, 13)),
-    comper_gasto_medidas = c("comper_costos_medidas"),
-    comgen_medidas_per = paste0("comgen_medidas_", c("cerco", "rejas", "proteccion")),
-    comgen_medidas_com = paste0("comgen_vecinos_medidas_", c("vigilancia", "al_comunit", "coord_pol", "coord_mun", "televig"))
+    pergen_pais = if_else(pergen_p_aumento_pais == 1, 1, 0),
+    pergen_comuna = if_else(pergen_p_aumento_com == 1, 1, 0),
+    pergen_barrio = if_else(pergen_p_aumento_barrio == 1, 1, 0),
+    comper_vida_cotidiana = if_else(!!expr_vida_cotidiana, 1, 0),
+    comper_transporte = if_else(!!expr_transporte2, 1, 0),
+    comper_gasto_medidas = if_else(comper_costos_medidas %in% c(1:5), 1, 0),
+    comgen_medidas_per = if_else(!!expr_medidas_per, 1, 0),
+    comgen_medidas_com = if_else(!!expr_medidas_comun, 1, 0)
 )
 
-# 3.2 Recodificar ----------------------------------------------------------------------------------------------------------------------------------------
-
-recs <- enusc_rec %>%
-    transmute(
-        emper_transporte = if_any(rec_vars[["emper_transporte"]], ~ . %in% c(1:2)),
-        emper_recreacion = if_any(rec_vars[["emper_recreacion"]], ~ . %in% c(1:2)),
-        emper_barrio = if_any(rec_vars[["emper_barrio"]], ~ . %in% c(1:2)),
-        emper_casa = if_any(rec_vars[["emper_casa"]], ~ . %in% c(1:2)),
-        perper_delito = case_when(
-            perper_p_expos_delito == 2 ~ 1, # No cree que será victima de delito
-            if_any(rec_vars[["perper_delito"]][[2]], ~ . == 1) ~ 2, # Cree que será victima de un delito no violento
-            if_any(rec_vars[["perper_delito"]][[3]], ~ . == 1) ~ 3, # Cree que será victima de un delito violento
-            TRUE ~ NA
-        ),
-        pergen_pais = if_any(rec_vars[["pergen_pais"]], ~ . == 1),
-        pergen_comuna = if_any(rec_vars[["pergen_comuna"]], ~ . == 1),
-        pergen_barrio = if_any(rec_vars[["pergen_barrio"]], ~ . == 1),
-        comper_vida_cotidiana = if_any(rec_vars[["comper_vida_cotidiana"]], ~ . == 1),
-        comper_transporte = if_any(rec_vars[["comper_transporte"]], ~ . == 1),
-        comper_gasto_medidas = if_any(rec_vars[["comper_gasto_medidas"]], ~ . %in% c(1:5)),
-        comgen_medidas_per = if_any(rec_vars[["comgen_medidas_per"]], ~ . == 1),
-        comgen_medidas_com = if_any(rec_vars[["comgen_medidas_com"]], ~ . == 1)
-    ) %>%
-    mutate(
-        across(everything(), ~ as.integer(.))
-    )
+rm(list = ls(pattern = "^expr"))
 
 # 3.4 Etiquetar --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -150,4 +166,4 @@ recs <- reduce2(
 enusc <- enusc %>% bind_cols(recs)
 
 # 4. Guardar bbdd ------------------------------------------------------------------------------------------------------------------------------------------
-saveRDS(enusc, "input/data/proc/enusc_2_recode_tidy.RDS")
+saveRDS(enusc, "input/data/proc/enusc_2_recode_rlang.RDS")
