@@ -47,10 +47,21 @@ enusc_rec <- reduce(
 
 # 3.1 Crear funciones de utilidad  -----------------------------------------------------------------------------------------------------------------------
 # Función para crear expresiones desde texto...
-gen_expr <- function(var, n, operator = "==", val = "1") {
-    glue("{var}_{n} {operator} {val}") %>%
+gen_expr <- function(var, n, operator = "==", val = "1", return_all = TRUE) {
+    # Guardar vector de variables a usar en la recodificación
+    vector <- glue("{var}_{n}") %>% as.character()
+
+    # Guardar expresión para recodificar
+    expr <- glue("{var}_{n} {operator} {val}") %>%
         paste(., collapse = " | ") %>%
         parse_expr()
+
+    if (return_all) {
+        all <- list(vector = vector, expr = expr)
+        return(all)
+    } else {
+        return(expr)
+    }
 }
 
 # 3.2 Crear expresiones ----------------------------------------------------------------------------------------------------------------------------------
@@ -79,15 +90,15 @@ expr_medidas_comun <- gen_expr("comgen_vecinos_medidas", c("vigilancia", "al_com
 
 recs <- enusc_rec %>% transmute(
     # EMPER
-    emper_transporte = if_else(!!expr_transporte, 1, 0),
-    emper_recreacion = if_else(!!expr_recreacion, 1, 0),
+    emper_transporte = if_else(!!expr_transporte[[2]], 1, 0),
+    emper_recreacion = if_else(!!expr_recreacion[[2]], 1, 0),
     emper_barrio = if_else(emper_p_inseg_oscuro_1 %in% c(1:2) | emper_p_inseg_dia_1 %in% c(1:2), 1, 0),
     emper_casa = if_else(emper_p_inseg_oscuro_2 %in% c(1:2) | emper_p_inseg_dia_2 %in% c(1:2), 1, 0),
     # PERPER
     perper_delito = case_when(
         perper_p_expos_delito == 2 ~ 1, # No cree que será victima de delito
-        !!expr_delito_no_violento ~ 2, # Cree que será victima de un delito no violento
-        !!expr_delito_violento ~ 3, # Cree que será victima de un delito violento
+        !!expr_delito_no_violento[[2]] ~ 2, # Cree que será victima de un delito no violento
+        !!expr_delito_violento[[2]] ~ 3, # Cree que será victima de un delito violento
         TRUE ~ NA
     ),
     # PERGEN
@@ -95,12 +106,12 @@ recs <- enusc_rec %>% transmute(
     pergen_comuna = if_else(pergen_p_aumento_com == 1, 1, 0),
     pergen_barrio = if_else(pergen_p_aumento_barrio == 1, 1, 0),
     # COMPER
-    comper_vida_cotidiana = if_else(!!expr_vida_cotidiana, 1, 0),
-    comper_transporte = if_else(!!expr_transporte2, 1, 0),
+    comper_vida_cotidiana = if_else(!!expr_vida_cotidiana[[2]], 1, 0),
+    comper_transporte = if_else(!!expr_transporte2[[2]], 1, 0),
     comper_gasto_medidas = if_else(comper_costos_medidas %in% c(1:5), 1, 0),
     # COMGEN
-    comgen_medidas_per = if_else(!!expr_medidas_per, 1, 0),
-    comgen_medidas_com = if_else(!!expr_medidas_comun, 1, 0)
+    comgen_medidas_per = if_else(!!expr_medidas_per[[2]], 1, 0),
+    comgen_medidas_com = if_else(!!expr_medidas_comun[[2]], 1, 0)
 )
 
 rm(list = ls(pattern = "^expr"))
