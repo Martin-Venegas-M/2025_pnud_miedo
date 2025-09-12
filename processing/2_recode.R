@@ -71,7 +71,7 @@ expr_delito_violento <- gen_expr("perper_p_delito_pronostico", c(2, 5, 7))
 expr_delito_no_violento <- gen_expr("perper_p_delito_pronostico", c(1:2, 4, 6, 8:11))
 
 # Dejar de hacer cosas
-expr_vida_cotidiana <- gen_expr("comper_p_mod_actividades", c(1:3, 7:8)) #! Sacar usar celular, caminar por ciertas areas de la recodificación
+expr_vida_cotidiana <- gen_expr("comper_p_mod_actividades", c(1:2, 8))
 expr_transporte2 <- gen_expr("comper_p_mod_actividades", c(4:6, 13))
 
 # Medidas (alarmas y camaras)
