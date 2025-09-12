@@ -1,15 +1,15 @@
 #******************************************************************************************************************************************************
 # 0. Identification -------------------------------------------------------
-# Title: MCA de variables recodificadas
-# Institution: PNUD
+# Título: MCA de variables recodificadas
+# Institución: PNUD
 # Responsable: Consultor técnico - MVM
-# Executive Summary: Este script contiene el código para un análisis de correspondencias multiples
-# Date: 8 de septiembre de 2025
+# Resumen ejecutivo: Este script contiene el código para un análisis de correspondencias multiples
+# Fecha: 8 de septiembre de 2025
 #******************************************************************************************************************************************************
 
 rm(list = ls())
 
-# 1. Load packages ------------------------------------------------------------------------------------------------------------------------------------
+# 1. Cargar paquetes ------------------------------------------------------------------------------------------------------------------------------------
 if (!require("pacman")) install.packages("pacman") # if pacman es missing, install
 
 pacman::p_load(
@@ -29,7 +29,7 @@ pacman::p_load(
     visdat
 )
 
-# 2. Load data and functions ----------------------------------------------------------------------------------------------------------------------------
+# 2. Cargar datos y funciones ----------------------------------------------------------------------------------------------------------------------------
 
 enusc <- readRDS("input/data/proc/enusc_2_recode.RDS")
 source("processing/helpers/functions.R")
@@ -39,16 +39,22 @@ enusc_svy <- enusc %>% as_survey_design(ids = conglomerado, stata = varstrat, we
 date <- format(Sys.Date(), "%y%m%d")
 user <- tolower(Sys.info()["user"])
 
-# 3. Crear MCA ------------------------------------------------------------------------------------------------------------------------------------------
+# 3. Ejecutar código -------------------------------------------------------------------------------------------------------------------------------------
 
-rec_vars <- enusc %>%  select(emper_transporte:comgen_vecinos_adopta_medidas) %>% names()
+# Vector de variables a incluir
+rec_vars <- enusc %>%
+    select(emper_transporte:comgen_vecinos_adopta_medidas) %>%
+    names()
 
-data <- enusc %>% 
-    filter(perper_p_expos_delito == 1) %>% 
-    select(all_of(rec_vars)) %>% 
+# Data para prueba
+data <- enusc %>%
+    filter(perper_p_expos_delito == 1) %>%
+    select(all_of(rec_vars)) %>%
     mutate(across(everything(), ~ sjlabelled::to_label(.)))
 
+# Ver casos perdidos
 visdat::vis_miss(data)
 
+# Correr y plotear mca
 mca <- MCA(data, graph = FALSE)
 plot_mca(mca)

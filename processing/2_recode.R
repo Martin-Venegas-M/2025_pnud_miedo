@@ -1,15 +1,15 @@
 #******************************************************************************************************************************************************
 # 0. Identification -------------------------------------------------------
-# Title: Recodificación
-# Institution: PNUD
+# Título: Recodificación
+# Institución: PNUD
 # Responsable: Consultor técnico - MVM
-# Executive Summary: Este script contiene el código para un procesamiento inicial de los datos
-# Date: 8 de septiembre de 2025
+# Resumen ejecutivo: Este script contiene el código para la recodificación de las vasriables principales
+# Date: 12 de septiembre de 2025
 #******************************************************************************************************************************************************
 
 rm(list = ls())
 
-# 1. Load packages ------------------------------------------------------------------------------------------------------------------------------------
+# 1. Cargar paquetes ------------------------------------------------------------------------------------------------------------------------------------
 if (!require("pacman")) install.packages("pacman") # if pacman es missing, install
 
 pacman::p_load(
@@ -23,7 +23,7 @@ pacman::p_load(
     glue
 )
 
-# 2. Load data and functions ----------------------------------------------------------------------------------------------------------------------------
+# 2. Cargar datos y funciones ----------------------------------------------------------------------------------------------------------------------------
 
 enusc <- readRDS("input/data/proc/enusc_1_select_desc.RDS")
 source("processing/helpers/functions.R")
@@ -120,4 +120,4 @@ recs <- reduce2(
 enusc <- enusc %>% bind_cols(recs)
 
 # 4. Guardar bbdd ------------------------------------------------------------------------------------------------------------------------------------------
-saveRDS(enusc, "input/data/proc/enusc_2_recode_tidy.RDS")
+saveRDS(enusc, "input/data/proc/enusc_2_recode.RDS")

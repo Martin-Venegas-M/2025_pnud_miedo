@@ -1,15 +1,15 @@
 #******************************************************************************************************************************************************
 # 0. Identification -------------------------------------------------------
-# Title: Selección y descriptivos iniciales
-# Institution: PNUD
+# Título: Selección y descriptivos iniciales
+# Institución: PNUD
 # Responsable: Consultor técnico - MVM
-# Executive Summary: Este script contiene el código para un procesamiento inicial de los datos
+# Resumen ejecutivo: Este script contiene el código para un procesamiento inicial de los datos y generación de descriptivos
 # Date: 8 de septiembre de 2025
 #******************************************************************************************************************************************************
 
 rm(list = ls())
 
-# 1. Load packages ------------------------------------------------------------------------------------------------------------------------------------
+# 1. Cargar paquetes ------------------------------------------------------------------------------------------------------------------------------------
 if (!require("pacman")) install.packages("pacman") # if pacman es missing, install
 
 pacman::p_load(
@@ -27,7 +27,7 @@ pacman::p_load(
     scales
 )
 
-# 2. Load data and functions ----------------------------------------------------------------------------------------------------------------------------
+# 2. Cargar datos y funciones ----------------------------------------------------------------------------------------------------------------------------
 
 # enusc_original <- read_sav("input/data/original/base-de-datos---enusc-2024.sav")
 # saveRDS(enusc_original, "input/data/original/base-de-datos---enusc-2024.RDS")
@@ -39,8 +39,7 @@ source("processing/helpers/functions.R")
 date <- format(Sys.Date(), "%y%m%d")
 user <- tolower(Sys.info()["user"])
 
-# 3. Select variables -----------------------------------------------------------------------------------------------------------------------------------
-
+# 3. Ejecutar código --------------------------------------------------------------------------------------------------------------------------------------
 # DIMENSIONES
 # 1a. EMOCIONAL- PERSONAL (emper) = P_EXPOS_DELITO (P4), P_INSEG (P3) -> Contextos en los que las personas se sienten inseguras
 # 1b EMOCIONAL- GENERAL (emgen) = ?
@@ -51,6 +50,7 @@ user <- tolower(Sys.info()["user"])
 # 3a. COMPORTAMIENTO - PERSONAL (comper) = P_MOD_ACTIVIDADES (P9), COSTOS_MEDIDAS (MDC6)
 # 3b. COMPORTAMIENTO - GENERAL (comgen) =  ANTIG_SECTOR (MDC1), MEDIDAS (MDC2), ADOPTADAS (MDC3), VECINOS (MDC4), VECINOS_ADOPTADAS (MDC5)
 
+# 3.1 Seleccionar variables --------------------------------------------------------------------------------------------------------------------------------
 emper <- "P_INSEG"
 perper <- "P_EXPOS_DELITO|P_DELITO_PRONOSTICO"
 pergen <- "P_AUMENTO"
@@ -80,7 +80,7 @@ enusc <- enusc_original %>%
 
 rm(emper, perper, comper, comgen)
 
-# 4. Descriptivos iniciales ------------------------------------------------------------------------------------------------------------------------------
+# 3.2. Descriptivos iniciales -------------------------------------------------------------------------------------------------------------------------------
 
 # Crear objeto encuesta
 # enusc_svy <- enusc %>%
@@ -124,7 +124,7 @@ comgen_tabs <- map(comgen_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\
 # Guardar todas
 all_tabs <- list(emper_tabs, perper_tabs, pergen_tabs, comper_tabs, comgen_tabs) %>% set_names(dim_names)
 
-# 4.  Save things ----------------------------------------------------------------------------------------------------------------------------------------
+# 4. Guardar objetos ----------------------------------------------------------------------------------------------------------------------------------------
 
 # Guardar bbdd enusc
 saveRDS(enusc, "input/data/proc/enusc_1_select_desc.RDS")

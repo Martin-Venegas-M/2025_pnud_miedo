@@ -1,10 +1,10 @@
 #******************************************************************************************************************************************************
 # 0. Identification -------------------------------------------------------
-# Title: Recodificación
-# Institution: PNUD
+# Título: [REPLICACIÓN] Recodificación
+# Institución: PNUD
 # Responsable: Consultor técnico - MVM
-# Executive Summary: Este script contiene el código para un procesamiento inicial de los datos
-# Date: 8 de septiembre de 2025
+# Resumen ejecutivo: Este script contiene el código para replicar el script "2_recode.R" con otra estrategia de programación (rlang)
+# Fecha: 12 de septiembre de 2025
 #******************************************************************************************************************************************************
 
 rm(list = ls())
