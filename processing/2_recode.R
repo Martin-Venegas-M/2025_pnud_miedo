@@ -68,9 +68,9 @@ expr_delito_violento <- gen_expr("perper_p_delito_pronostico", c(2, 5, 7))
 expr_vida_cotidiana <- gen_expr("comper_p_mod_actividades", c(1:2, 8))
 expr_transporte2 <- gen_expr("comper_p_mod_actividades", c(4:6, 13))
 
-# Medidas (alarmas y camaras)
-expr_medidas_alarm_cam <- gen_expr("comgen_medidas", c("alarma_privada", "camaras_vigilancia"))
-expr_vecinos_medidas_alarm_cam <- gen_expr("comgen_vecinos_medidas", c("al_comunit", "televig"))
+# Medidas (personales y comunitarias)
+expr_medidas_per <- gen_expr("comgen_medidas", c("cerco", "rejas", "proteccion"))
+expr_medidas_comun <- gen_expr("comgen_vecinos_medidas", c("vigilancia", "al_comunit", "coord_pol", "coord_mun", "televig"))
 
 #* NOTA: Ahora que ya terminé de aplicar esta estrategia, me doy cuenta que era más tidyverse-friendly crear los vectores de las variables dinamicamente
 #* con texto y luego aplicar if_any(). De todos modos igual me gusta la estrategia, siento que queda claro el procedimiento :).
@@ -99,12 +99,8 @@ recs <- enusc_rec %>% transmute(
     comper_transporte = if_else(!!expr_transporte2, 1, 0),
     comper_gasto_medidas = if_else(comper_costos_medidas %in% c(1:5), 1, 0),
     # COMGEN
-    # Personales
-    comgen_medidas_alarm_cam = if_else(!!expr_medidas_alarm_cam, 1, 0), # ! ELIMINAR: Alarmas y cámaras no son los mejores indicadores
-    #* comgen_medidas_rejas_protecciones = if_else() # Agregar rejas y otro tipo de protecciones (sola) o quizás + cerco electrico y no electrico
-    # Comunitarias
-    comgen_vecinos_medidas_alarm_cam = if_else(!!expr_vecinos_medidas_alarm_cam, 1, 0), # ! ELIMINAR: Alarmas y cámaras no son los mejores indicadores
-    #* comgen_vecinos_medidas = if_else() # Agregar desde sistema de vigilancia hasta sistema de televigilancia
+    comgen_medidas_per = if_else(!!expr_medidas_per, 1, 0),
+    comgen_medidas_com = if_else(!!expr_medidas_comun, 1, 0)
 )
 
 rm(list = ls(pattern = "^expr"))
@@ -124,8 +120,8 @@ etiquetas_variables <- c(
     "Modifica comportamiento en vida cotidiana"          = "comper_vida_cotidiana",
     "Modifica comportamiento en transporte"              = "comper_transporte",
     "Gasta en medidas de seguridad"                      = "comper_gasto_medidas",
-    "Dispone de alarmas o camaras"                       = "comgen_medidas_alarm_cam",
-    "Vecinos disponen de alarmas y camaras comunitarias" = "comgen_vecinos_medidas_alarm_cam"
+    "Dispone de medidas de seguridad (personales)"       = "comgen_medidas_per",
+    "Disponen de medidas de seguridad (comunitarias)"    = "comgen_medidas_com"
 )
 
 # Aplicar etiquetas variables
@@ -149,8 +145,8 @@ etiquetas_valores <- list(
     "comper_vida_cotidiana"            = c("Modifica comportamiento en Vida Cotidiana" = 1, "No modifica comportamiento en Vida Cotidiana" = 0),
     "comper_transporte"                = c("Modifica comportamiento en Transporte" = 1, "No modifica comportamiento en Transporte" = 0),
     "comper_gasto_medidas"             = c("Gasta en medidas de seguridad" = 1, "No gasta en medidas de seguridad" = 0),
-    "comgen_medidas_alarm_cam"         = c("Dispone de alarmas y cámaras" = 1, "No dispone de alarmas y cámaras" = 0),
-    "comgen_vecinos_medidas_alarm_cam" = c("Vecinos disponen de alarmas y cámaras" = 1, "Vecinos no disponen de alarmas y cámaras" = 0)
+    "comgen_medidas_per"               = c("Dispone de medidas personales" = 1, "No dispone de medidas personales" = 0),
+    "comgen_medidas_com"               = c("Dispone de medidas comunitarias" = 1, "No dispone de medidas comunitarias" = 0)
 )
 
 # Aplicar etiquetas valores
