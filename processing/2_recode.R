@@ -58,17 +58,11 @@ gen_expr <- function(var, n, operator = "==", val = "1") {
 # Lugar donde se siene inseguridad
 expr_transporte <- gen_expr("emper_p_inseg_lugares", 1:6, "%in%", "c(1:2)")
 expr_recreacion <- gen_expr("emper_p_inseg_lugares", c(7, 10, 12), "%in%", "c(1:2)")
-#! Dejemos como perdidos a una variable que tiene No Aplica (85?) en todas
+# ! Dejemos como perdidos a una variable que tiene No Aplica (85?) en todas
 
 # Probabilidad ser victima de delito
-#! Construir una variable resumen con: 
-#! - 1. No cree que será victima de delito (esto es P7 = 2)
-#! - 2. Cree que será victima de delito no violento
-#! - 3. Cree que será victima de delito violento
-
-expr_delito <- gen_expr("perper_p_delito_pronostico", c(1:11))
+expr_delito_no_violento <- gen_expr("perper_p_delito_pronostico", c(1, 4, 6, 8:11))
 expr_delito_violento <- gen_expr("perper_p_delito_pronostico", c(2, 5, 7))
-expr_delito_no_violento <- gen_expr("perper_p_delito_pronostico", c(1:2, 4, 6, 8:11))
 
 # Dejar de hacer cosas
 expr_vida_cotidiana <- gen_expr("comper_p_mod_actividades", c(1:2, 8))
@@ -90,9 +84,12 @@ recs <- enusc_rec %>% transmute(
     emper_barrio = if_else(emper_p_inseg_oscuro_1 %in% c(1:2) | emper_p_inseg_dia_1 %in% c(1:2), 1, 0),
     emper_casa = if_else(emper_p_inseg_oscuro_2 %in% c(1:2) | emper_p_inseg_dia_2 %in% c(1:2), 1, 0),
     # PERPER
-    perper_delito = if_else(!!expr_delito, 1, 0),
-    perper_delito_violento = if_else(!!expr_delito_violento, 1, 0),
-    perper_delito_no_violento = if_else(!!expr_delito_no_violento, 1, 0),
+    perper_delito = case_when(
+        perper_p_expos_delito == 2 ~ 1, # No cree que será victima de delito
+        !!expr_delito_no_violento ~ 2, # Cree que será victima de un delito no violento
+        !!expr_delito_violento ~ 3, # Cree que será victima de un delito violento
+        TRUE ~ NA
+    ),
     # PERGEN
     pergen_pais = if_else(pergen_p_aumento_pais == 1, 1, 0),
     pergen_comuna = if_else(pergen_p_aumento_com == 1, 1, 0),
@@ -103,13 +100,13 @@ recs <- enusc_rec %>% transmute(
     comper_gasto_medidas = if_else(comper_costos_medidas %in% c(1:5), 1, 0),
     # COMGEN
     # Personales
-    comgen_medidas_alarm_cam = if_else(!!expr_medidas_alarm_cam, 1, 0), #! ELIMINAR: Alarmas y cámaras no son los mejores indicadores
-    #*comgen_medidas_rejas_protecciones = if_else() # Agregar rejas y otro tipo de protecciones (sola) o quizás + cerco electrico y no electrico
-    comgen_adopta_medidas = if_any(starts_with("comgen_adoptadas"), ~ . == 1) %>% as.numeric(), #! ELIMINAR
+    comgen_medidas_alarm_cam = if_else(!!expr_medidas_alarm_cam, 1, 0), # ! ELIMINAR: Alarmas y cámaras no son los mejores indicadores
+    #* comgen_medidas_rejas_protecciones = if_else() # Agregar rejas y otro tipo de protecciones (sola) o quizás + cerco electrico y no electrico
+    comgen_adopta_medidas = if_any(starts_with("comgen_adoptadas"), ~ . == 1) %>% as.numeric(), # ! ELIMINAR
     # Comunitarias
-    comgen_vecinos_medidas_alarm_cam = if_else(!!expr_vecinos_medidas_alarm_cam, 1, 0), #! ELIMINAR: Alarmas y cámaras no son los mejores indicadores
-    #*comgen_vecinos_medidas = if_else() # Agregar desde sistema de vigilancia hasta sistema de televigilancia
-    comgen_vecinos_adopta_medidas = if_any(starts_with("comgen_vecinos_adoptadas"), ~ . == 1) %>% as.numeric() #! ELIMINAR
+    comgen_vecinos_medidas_alarm_cam = if_else(!!expr_vecinos_medidas_alarm_cam, 1, 0), # ! ELIMINAR: Alarmas y cámaras no son los mejores indicadores
+    #* comgen_vecinos_medidas = if_else() # Agregar desde sistema de vigilancia hasta sistema de televigilancia
+    comgen_vecinos_adopta_medidas = if_any(starts_with("comgen_vecinos_adoptadas"), ~ . == 1) %>% as.numeric() # ! ELIMINAR
 )
 
 # 3.4 Etiquetar --------------------------------------------------------------------------------------------------------------------------------------------
@@ -120,9 +117,7 @@ etiquetas_variables <- c(
     "Inseguridad en Recreación"                          = "emper_recreacion",
     "Inseguridad en Barrio"                              = "emper_barrio",
     "Inseguridad en Casa"                                = "emper_casa",
-    "Probabilidad victima delito"                        = "perper_delito",
-    "Probabilidad victima delito violento"               = "perper_delito_violento",
-    "Probabilidad victima delito no violento"            = "perper_delito_no_violento",
+    "Expectativa de ser victima delito"                  = "perper_delito",
     "Aumento delincuencia en el país"                    = "pergen_pais",
     "Aumento delincuencia en el comuna"                  = "pergen_comuna",
     "Aumento delincuencia en el barrio"                  = "pergen_barrio",
@@ -149,9 +144,7 @@ etiquetas_valores <- list(
     "emper_recreacion"                 = c("Muy inseguro/Inseguro en Recreación" = 1, "Muy seguro/Seguro en Recreación" = 0),
     "emper_barrio"                     = c("Muy inseguro/Inseguro en el Barrio" = 1, "Muy seguro/Seguro en el Barrio" = 0),
     "emper_casa"                       = c("Muy inseguro/Inseguro en la Casa" = 1, "Muy seguro/Seguro en Casa" = 0),
-    "perper_delito"                    = c("Cree que será victima de Delito" = 1, "No cree que será victima de Delito" = 0),
-    "perper_delito_violento"           = c("Cree que será victima de Delito Violento" = 1, "No cree que será victima de Delito Violento" = 0),
-    "perper_delito_no_violento"        = c("Cree que será victima de Delito No Violento" = 1, "No cree que será victima de Delito No Violento" = 0),
+    "perper_delito"                    = c("No cree que será victima de delito" = 1, "Cree que será victima de delito no violento" = 2, "Cree que será victima de delito violento" = 3),
     "pergen_pais"                      = c("Aumentó delincuencia en País" = 1, "Se mantuvo/Disminuyó delincuencia en País" = 0),
     "pergen_comuna"                    = c("Aumentó delincuencia en Comuna" = 1, "Se mantuvo/Disminuyó delincuencia en Comuna" = 0),
     "pergen_barrio"                    = c("Aumentó delincuencia en Barrio" = 1, "Se mantuvo/Disminuyó delincuencia en Barrio" = 0),
