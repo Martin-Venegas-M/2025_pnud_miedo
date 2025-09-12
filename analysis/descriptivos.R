@@ -40,13 +40,17 @@ user <- tolower(Sys.info()["user"])
 
 # Crear vector con nombres de variables recodificadas
 vars_rec <- enusc %>%
-    select(emper_transporte:comgen_vecinos_adopta_medidas) %>%
+    select(emper_transporte:comgen_medidas_com) %>%
     names()
 
 # Crear tabla con resultados
-results <- map(vars_rec, ~ tab_frq1(var = !!sym(.x))) %>%
+results <- map(vars_rec, ~ tab_frq1(var = !!sym(.x), verbose = FALSE)) %>%
     list_rbind() %>%
     pre_proc_excel()
 
-# Formatear y guardar tabla
+results_unweighted <- map(vars_rec, ~ tab_frq1(var = !!sym(.x), w = NULL, verbose = FALSE)) %>%
+    list_rbind()
+
+# Formatear y guardar tablas
 format_tab_excel(results, path = glue("output/tables/{date}_vars_rec_tab_format.xlsx", sheet = .y))
+format_tab_excel(results_unweighted, path = glue("output/tables/{date}_vars_rec_tab_format_unweighted.xlsx", sheet = .y))
