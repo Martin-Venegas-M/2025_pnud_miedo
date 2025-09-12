@@ -4,7 +4,7 @@
 # Institution: PNUD
 # Responsable: Consultor técnico - MVM
 # Executive Summary: Este script contiene el código para un procesamiento inicial de los datos
-# Date: August 18, 2025
+# Date: 8 de septiembre de 2025
 #******************************************************************************************************************************************************
 
 rm(list = ls())
@@ -58,14 +58,20 @@ gen_expr <- function(var, n, operator = "==", val = "1") {
 # Lugar donde se siene inseguridad
 expr_transporte <- gen_expr("emper_p_inseg_lugares", 1:6, "%in%", "c(1:2)")
 expr_recreacion <- gen_expr("emper_p_inseg_lugares", c(7, 10, 12), "%in%", "c(1:2)")
+#! Dejemos como perdidos a una variable que tiene No Aplica (85?) en todas
 
-# Probabilidad ser vitima de delito
+# Probabilidad ser victima de delito
+#! Construir una variable resumen con: 
+#! - 1. No cree que será victima de delito (esto es P7 = 2)
+#! - 2. Cree que será victima de delito no violento
+#! - 3. Cree que será victima de delito violento
+
 expr_delito <- gen_expr("perper_p_delito_pronostico", c(1:11))
 expr_delito_violento <- gen_expr("perper_p_delito_pronostico", c(2, 5, 7))
 expr_delito_no_violento <- gen_expr("perper_p_delito_pronostico", c(1:2, 4, 6, 8:11))
 
 # Dejar de hacer cosas
-expr_vida_cotidiana <- gen_expr("comper_p_mod_actividades", c(1:3, 7:8))
+expr_vida_cotidiana <- gen_expr("comper_p_mod_actividades", c(1:3, 7:8)) #! Sacar usar celular, caminar por ciertas areas de la recodificación
 expr_transporte2 <- gen_expr("comper_p_mod_actividades", c(4:6, 13))
 
 # Medidas (alarmas y camaras)
@@ -97,11 +103,13 @@ recs <- enusc_rec %>% transmute(
     comper_gasto_medidas = if_else(comper_costos_medidas %in% c(1:5), 1, 0),
     # COMGEN
     # Personales
-    comgen_medidas_alarm_cam = if_else(!!expr_medidas_alarm_cam, 1, 0),
-    comgen_adopta_medidas = if_any(starts_with("comgen_adoptadas"), ~ . == 1) %>% as.numeric(),
+    comgen_medidas_alarm_cam = if_else(!!expr_medidas_alarm_cam, 1, 0), #! ELIMINAR: Alarmas y cámaras no son los mejores indicadores
+    #*comgen_medidas_rejas_protecciones = if_else() # Agregar rejas y otro tipo de protecciones (sola) o quizás + cerco electrico y no electrico
+    comgen_adopta_medidas = if_any(starts_with("comgen_adoptadas"), ~ . == 1) %>% as.numeric(), #! ELIMINAR
     # Comunitarias
-    comgen_vecinos_medidas_alarm_cam = if_else(!!expr_vecinos_medidas_alarm_cam, 1, 0),
-    comgen_vecinos_adopta_medidas = if_any(starts_with("comgen_vecinos_adoptadas"), ~ . == 1) %>% as.numeric()
+    comgen_vecinos_medidas_alarm_cam = if_else(!!expr_vecinos_medidas_alarm_cam, 1, 0), #! ELIMINAR: Alarmas y cámaras no son los mejores indicadores
+    #*comgen_vecinos_medidas = if_else() # Agregar desde sistema de vigilancia hasta sistema de televigilancia
+    comgen_vecinos_adopta_medidas = if_any(starts_with("comgen_vecinos_adoptadas"), ~ . == 1) %>% as.numeric() #! ELIMINAR
 )
 
 # 3.4 Etiquetar --------------------------------------------------------------------------------------------------------------------------------------------
