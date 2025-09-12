@@ -40,7 +40,7 @@ enusc_rec <- reduce(
     c(77, 88, 99, 96), # Códigos a remover
     \(data, code){
         print(glue("Removiendo el código {code} para las siguientes varables:"))
-        data %>% mutate(across(matches("emper|perper|comper|comgen"), ~ if_else(. %in% code, NA, .)))
+        data %>% mutate(across(matches("emper|perper|pergen|comper|comgen"), ~ if_else(. %in% code, NA, .)))
     },
     .init = enusc
 ) %>% select(-ends_with("_na"), -ends_with("_ns"), -ends_with("_nr")) # Eliminar columnas sin info
@@ -52,9 +52,6 @@ gen_expr <- function(var, n, operator = "==", val = "1") {
         paste(., collapse = " | ") %>%
         parse_expr()
 }
-
-# Extraer lo que está después del "_"
-sust <- function(x) str_extract(x, "(?<=_).*")
 
 # 3.2 Crear expresiones ----------------------------------------------------------------------------------------------------------------------------------
 
@@ -105,35 +102,71 @@ recs <- enusc_rec %>% transmute(
     # Comunitarias
     comgen_vecinos_medidas_alarm_cam = if_else(!!expr_vecinos_medidas_alarm_cam, 1, 0),
     comgen_vecinos_adopta_medidas = if_any(starts_with("comgen_vecinos_adoptadas"), ~ . == 1) %>% as.numeric()
-) %>%
-    # Recodificaciones de las etiquetas de las variables
-    mutate(
-        # EMPER
-        across(starts_with("emper"), ~ set_label(., c(glue("Inseguridad en {sust(cur_column())}")))),
-        # PERPER
-        perper_delito = set_label(perper_delito, "Probabilidad victima delito"),
-        perper_delito_violento = set_label(perper_delito_violento, "Probabilidad victima delito violento"),
-        perper_delito_no_violento = set_label(perper_delito, "Probabilidad victima delito no violento"),
-        # PERGEN
-        across(starts_with("pergen"), ~ set_label(., c(glue("Aumento delincuencia en {sust(cur_column())}")))),
-        # COMPER
-        comper_vida_cotidiana = set_label(comper_vida_cotidiana, "Modifica comportamiento en vida cotidiana"),
-        comper_transporte = set_label(comper_transporte, "Modifica comportamiento en transporte"),
-        comper_gasto_medidas = set_label(comper_gasto_medidas, "Gasta en medidas de seguridad"),
-        # COMEGEN
-        comgen_medidas_alarm_cam = set_label(comgen_medidas_alarm_cam, "Dispone de alarmas o camaras"),
-        comgen_adopta_medidas = set_label(comgen_adopta_medidas, "Adopta alguna medida de seguridad"),
-        comgen_vecinos_medidas_alarm_cam = set_label(comgen_vecinos_medidas_alarm_cam, "Vecinos disponen de alarmas y camaras comunitarias"),
-        comgen_vecinos_adopta_medidas = set_label(comgen_vecinos_adopta_medidas, "Vecinos adoptan alguna medida")
-    ) %>%
-    # Recodificaciones de las etiquetas de los valores
-    mutate(
-        across(everything(), ~ set_labels(., labels = c("Sí" = 1, "No" = 0)))
-    )
+)
+
+# 3.4 Etiquetar --------------------------------------------------------------------------------------------------------------------------------------------
+
+# Crear etiquetas de variables
+etiquetas_variables <- c(
+    "Inseguridad en Transporte"                          = "emper_transporte",
+    "Inseguridad en Recreación"                          = "emper_recreacion",
+    "Inseguridad en Barrio"                              = "emper_barrio",
+    "Inseguridad en Casa"                                = "emper_casa",
+    "Probabilidad victima delito"                        = "perper_delito",
+    "Probabilidad victima delito violento"               = "perper_delito_violento",
+    "Probabilidad victima delito no violento"            = "perper_delito_no_violento",
+    "Aumento delincuencia en el país"                    = "pergen_pais",
+    "Aumento delincuencia en el comuna"                  = "pergen_comuna",
+    "Aumento delincuencia en el barrio"                  = "pergen_barrio",
+    "Modifica comportamiento en vida cotidiana"          = "comper_vida_cotidiana",
+    "Modifica comportamiento en transporte"              = "comper_transporte",
+    "Gasta en medidas de seguridad"                      = "comper_gasto_medidas",
+    "Dispone de alarmas o camaras"                       = "comgen_medidas_alarm_cam",
+    "Adopta alguna medida de seguridad"                  = "comgen_adopta_medidas",
+    "Vecinos disponen de alarmas y camaras comunitarias" = "comgen_vecinos_medidas_alarm_cam",
+    "Vecinos adoptan alguna medida"                      = "comgen_vecinos_adopta_medidas"
+)
+
+# Aplicar etiquetas variables
+recs <- reduce2(
+    unname(etiquetas_variables),
+    names(etiquetas_variables),
+    \(data, var, etiqueta) data %>%
+        mutate("{var}" := set_label(.data[[var]], label = etiqueta)),
+    .init = recs
+)
+
+etiquetas_valores <- list(
+    "emper_transporte"                 = c("Muy inseguro/Inseguro en Transporte" = 1, "Muy seguro/Seguro en Transporte" = 0),
+    "emper_recreacion"                 = c("Muy inseguro/Inseguro en Recreación" = 1, "Muy seguro/Seguro en Recreación" = 0),
+    "emper_barrio"                     = c("Muy inseguro/Inseguro en el Barrio" = 1, "Muy seguro/Seguro en el Barrio" = 0),
+    "emper_casa"                       = c("Muy inseguro/Inseguro en la Casa" = 1, "Muy seguro/Seguro en Casa" = 0),
+    "perper_delito"                    = c("Cree que será victima de Delito" = 1, "No cree que será victima de Delito" = 0),
+    "perper_delito_violento"           = c("Cree que será victima de Delito Violento" = 1, "No cree que será victima de Delito Violento" = 0),
+    "perper_delito_no_violento"        = c("Cree que será victima de Delito No Violento" = 1, "No cree que será victima de Delito No Violento" = 0),
+    "pergen_pais"                      = c("Aumentó delincuencia en País" = 1, "Se mantuvo/Disminuyó delincuencia en País" = 0),
+    "pergen_comuna"                    = c("Aumentó delincuencia en Comuna" = 1, "Se mantuvo/Disminuyó delincuencia en Comuna" = 0),
+    "pergen_barrio"                    = c("Aumentó delincuencia en Barrio" = 1, "Se mantuvo/Disminuyó delincuencia en Barrio" = 0),
+    "comper_vida_cotidiana"            = c("Modifica comportamiento en Vida Cotidiana" = 1, "No modifica comportamiento en Vida Cotidiana" = 0),
+    "comper_transporte"                = c("Modifica comportamiento en Transporte" = 1, "No modifica comportamiento en Transporte" = 0),
+    "comper_gasto_medidas"             = c("Gasta en medidas de seguridad" = 1, "No gasta en medidas de seguridad" = 0),
+    "comgen_medidas_alarm_cam"         = c("Dispone de alarmas y cámaras" = 1, "No dispone de alarmas y cámaras" = 0),
+    "comgen_adopta_medidas"            = c("Adopta alguna medida de seguridad" = 1, "No adopta ninguna medida de seguridad" = 0),
+    "comgen_vecinos_medidas_alarm_cam" = c("Vecinos disponen de alarmas y cámaras" = 1, "Vecinos no disponen de alarmas y cámaras" = 0),
+    "comgen_vecinos_adopta_medidas"    = c("Vecinos adoptan alguna medida de seguridad" = 1, "Vecinos no adoptan ninguna medida de seguridad" = 0)
+)
+
+# Aplicar etiquetas valores
+recs <- reduce2(
+    names(etiquetas_valores),
+    etiquetas_valores,
+    \(data, var, etiqueta) data %>% mutate("{var}" := set_labels(.data[[var]], labels = etiqueta)),
+    .init = recs
+)
 
 rm(list = ls(pattern = "^expr"))
 
-# 3.4 Join -------------------------------------------------------------------------------------------------------------------------------------------------
+# 3.5 Join -------------------------------------------------------------------------------------------------------------------------------------------------
 enusc <- enusc %>% bind_cols(recs)
 
 # 4. Guardar bbdd ------------------------------------------------------------------------------------------------------------------------------------------
