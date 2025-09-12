@@ -69,7 +69,6 @@ gen_expr <- function(var, n, operator = "==", val = "1", return_all = FALSE) {
 # Lugar donde se siene inseguridad
 expr_transporte <- gen_expr("emper_p_inseg_lugares", 1:6, "%in%", "c(1:2)")
 expr_recreacion <- gen_expr("emper_p_inseg_lugares", c(7, 10, 12), "%in%", "c(1:2)")
-# ! Dejemos como perdidos a una variable que tiene No Aplica (85?) en todas
 
 # Probabilidad ser victima de delito
 expr_delito_no_violento <- gen_expr("perper_p_delito_pronostico", c(1, 4, 6, 8:11))
@@ -89,27 +88,22 @@ expr_medidas_comun <- gen_expr("comgen_vecinos_medidas", c("vigilancia", "al_com
 # 3.3 Recodificar ----------------------------------------------------------------------------------------------------------------------------------------
 
 recs <- enusc_rec %>% transmute(
-    # EMPER
     emper_transporte = if_else(!!expr_transporte, 1, 0),
     emper_recreacion = if_else(!!expr_recreacion, 1, 0),
     emper_barrio = if_else(emper_p_inseg_oscuro_1 %in% c(1:2) | emper_p_inseg_dia_1 %in% c(1:2), 1, 0),
     emper_casa = if_else(emper_p_inseg_oscuro_2 %in% c(1:2) | emper_p_inseg_dia_2 %in% c(1:2), 1, 0),
-    # PERPER
     perper_delito = case_when(
         perper_p_expos_delito == 2 ~ 1, # No cree que será victima de delito
         !!expr_delito_no_violento ~ 2, # Cree que será victima de un delito no violento
         !!expr_delito_violento ~ 3, # Cree que será victima de un delito violento
         TRUE ~ NA
     ),
-    # PERGEN
     pergen_pais = if_else(pergen_p_aumento_pais == 1, 1, 0),
     pergen_comuna = if_else(pergen_p_aumento_com == 1, 1, 0),
     pergen_barrio = if_else(pergen_p_aumento_barrio == 1, 1, 0),
-    # COMPER
     comper_vida_cotidiana = if_else(!!expr_vida_cotidiana, 1, 0),
     comper_transporte = if_else(!!expr_transporte2, 1, 0),
     comper_gasto_medidas = if_else(comper_costos_medidas %in% c(1:5), 1, 0),
-    # COMGEN
     comgen_medidas_per = if_else(!!expr_medidas_per, 1, 0),
     comgen_medidas_com = if_else(!!expr_medidas_comun, 1, 0)
 )
