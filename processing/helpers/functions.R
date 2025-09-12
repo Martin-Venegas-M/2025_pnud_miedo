@@ -142,15 +142,13 @@ pre_proc_excel <- function(x) {
         rename(prc = valid.prc)
 }
 
-# ! ADAPTAR
-create_class_index <- function(data, n_class = 6) {
-    # Create reduced dataset for creating new variables
+mca_hcpc <- function(data, n_class = 6, ...) {
     data <- data %>%
-        dplyr::select(idencuesta, income_cat_final, educ_cat_final, clase_final) %>%
-        dplyr::mutate(across(income_cat_final:clase_final, ~ sjlabelled::to_label(.)))
+        dplyr::select(...) %>%
+        dplyr::mutate(across(everything(), ~ sjlabelled::to_label(.)))
 
     # Run MCA analysis
-    acm <- FactoMineR::MCA(data, quanti.sup = 1, graph = FALSE)
+    acm <- FactoMineR::MCA(data, graph = FALSE)
 
     # Run cluster analysis
     clust <- FactoMineR::HCPC(acm, nb.clust = n_class, consol = FALSE, graph = FALSE)
@@ -167,5 +165,19 @@ create_class_index <- function(data, n_class = 6) {
     return(results)
 }
 
-# Test
-# results6 <- map(elsocs, ~ create_class_index(.x, n_class = 6))
+plot_mca <- function(obj){
+  obj %>% 
+  fviz_mca_var(repel = TRUE,
+  col.var = "cos2",                # color = calidad de representación
+  gradient.cols = c("#B3CDE3","#6497B1","#03396C"),
+  ggtheme = theme_minimal()
+  ) +
+  ggtitle("MCA: categorías (Dim1 vs Dim2)") +
+  theme(legend.position = "right")
+
+}
+
+plot_cluster <- function(obj){
+  obj %>% 
+  fviz_cluster(clust, geom = "point", main = "Factor map")
+}
