@@ -3,7 +3,7 @@
 # Título: Recodificación
 # Institución: PNUD
 # Responsable: Consultor técnico - MVM
-# Resumen ejecutivo: Este script contiene el código para la recodificación de las vasriables principales
+# Resumen ejecutivo: Este script contiene el código para la recodificación de las variables principales
 # Date: 12 de septiembre de 2025
 #******************************************************************************************************************************************************
 
@@ -39,17 +39,17 @@ source("processing/helpers/labels.R")
 
 # 3.0 General: remover NSNR -------------------------------------------------------------------------------------------------------------------------------
 
-enusc_rec <- reduce(
-    c(77, 88, 99, 96), # Códigos a remover
-    \(data, code){
-        print(glue("Removiendo el código {code} para las siguientes varables:"))
-        data %>% mutate(across(matches("emper|perper|pergen|comper|comgen"), ~ if_else(. %in% code, NA, .)))
-    },
-    .init = enusc
-) %>% select(-ends_with("_na"), -ends_with("_ns"), -ends_with("_nr")) # Eliminar columnas sin info
+# enusc_rec <- reduce(
+#     c(88, 99), # Códigos a remover
+#     \(data, code){
+#         print(glue("Removiendo el código {code} para las siguientes varables:"))
+#         data %>% mutate(across(matches("emper|perper|pergen|comper|comgen"), ~ if_else(. %in% code, NA, .)))
+#     },
+#     .init = enusc
+# )
 
 # 3.1 Crear vectores --------------------------------------------------------------------------------------------------------------------------------------
-
+#* NOTA: Estos vectores corresponden a las variables utilizadas para construir las variables recodificadas
 rec_vars <- list(
     emper_transporte = paste0("emper_p_inseg_lugares_", 1:6),
     emper_recreacion = paste0("emper_p_inseg_lugares_", c(7, 10, 12)),
@@ -57,8 +57,10 @@ rec_vars <- list(
     emper_casa = c("emper_p_inseg_oscuro_2", "emper_p_inseg_dia_2"),
     perper_delito = list(
         "perper_p_expos_delito",
-        paste0("perper_p_delito_pronostico_", c(1, 4, 6, 8:11)),
-        paste0("perper_p_delito_pronostico_", c(2, 5, 7))
+        paste0("perper_p_delito_pronostico_", c(1, 3:4, 6, 8:11)),
+        paste0("perper_p_delito_pronostico_", c(2, 5, 7)),
+        "perper_p_expos_delito",
+        paste0("perper_p_delito_pronostico_", c(77, 88, 99))
     ),
     pergen_pais = c("pergen_p_aumento_pais"),
     pergen_comuna = c("pergen_p_aumento_com"),
@@ -72,7 +74,7 @@ rec_vars <- list(
 
 # 3.2 Recodificar ----------------------------------------------------------------------------------------------------------------------------------------
 
-recs <- enusc_rec %>%
+recs <- enusc %>%
     transmute(
         emper_transporte = if_any(rec_vars[["emper_transporte"]], ~ . %in% c(1:2)),
         emper_recreacion = if_any(rec_vars[["emper_recreacion"]], ~ . %in% c(1:2)),
@@ -82,6 +84,8 @@ recs <- enusc_rec %>%
             perper_p_expos_delito == 2 ~ 1, # No cree que será victima de delito
             if_any(rec_vars[["perper_delito"]][[2]], ~ . == 1) ~ 2, # Cree que será victima de un delito no violento
             if_any(rec_vars[["perper_delito"]][[3]], ~ . == 1) ~ 3, # Cree que será victima de un delito violento
+            perper_p_expos_delito %in% c(88, 99) ~ 4, # No sabe/No responde si cree que será victima de delito
+            if_any(rec_vars[["perper_delito"]][[5]], ~ . == 1) ~ 5, # No sabe/No responde de qué victima será victima / Otro tipo de delito
             TRUE ~ NA
         ),
         pergen_pais = if_any(rec_vars[["pergen_pais"]], ~ . == 1),
@@ -94,7 +98,7 @@ recs <- enusc_rec %>%
         comgen_medidas_com = if_any(rec_vars[["comgen_medidas_com"]], ~ . == 1)
     ) %>%
     mutate(
-        across(everything(), ~ as.integer(.))
+        across(everything(), ~ as.integer(.)) # Pasar de TRUE/FALSE a 1/0
     )
 
 # 3.4 Etiquetar --------------------------------------------------------------------------------------------------------------------------------------------
