@@ -62,8 +62,8 @@ rec_vars <- list(
 )
 
 #* NOTA TÉCNICA:
-#* Debido a la naturaleza de la variable perper_delito, el elemento rec_vars[["perper_delito"]]] corresponde a una lista de 
-#* strings/vectores, en vez de solo un vector (como las demás variables). En esta sub-lista ( rec_vars[["perper_delito"]]] ), 
+#* Debido a la naturaleza de la variable perper_delito, el elemento rec_vars[["perper_delito"]]] corresponde a una lista de
+#* strings/vectores, en vez de solo un vector (como las demás variables). En esta sub-lista ( rec_vars[["perper_delito"]]] ),
 #* cada elemento corresponden a las variables que se utilizarán para recodificar cada categoría del case_when(). Por ejemplo,
 #* el elemento 1 ( rec_vars[["perper_delito"]][[1]] ) corresponde a perper_p_expos_delito. Esta es la variable que permitirá
 #* generar la categoría "1. No cree que será victima de delito", cuando perper_p_expos_delito == 2.
@@ -103,13 +103,13 @@ enusc <- enusc %>%
     )
 
 #* NOTA TÉCNICA:
-#* Para las variables de pergen_pais, pergen_comuna, pergen_comuna y comper_gasto_medidas no es estrictamente necesario utilizar 
-#* la estrategia de if_all() + rec_vars[[]], ya que para la creación de estas variables recodificadas se utiliza solo una variable 
-#* del cuestionario (en vez de un conjunto de variables). Por ejemplo, para crear comper_gastos_medidas solo se utiliza comper_costos_medidas. 
-#* Sin embargo, para estas variables preferí mantener la estrategia por consistencia, de tal manera que el código de recodificación no incluya 
+#* Para las variables de pergen_pais, pergen_comuna, pergen_comuna y comper_gasto_medidas no es estrictamente necesario utilizar
+#* la estrategia de if_all() + rec_vars[[]], ya que para la creación de estas variables recodificadas se utiliza solo una variable
+#* del cuestionario (en vez de un conjunto de variables). Por ejemplo, para crear comper_gastos_medidas solo se utiliza comper_costos_medidas.
+#* Sin embargo, para estas variables preferí mantener la estrategia por consistencia, de tal manera que el código de recodificación no incluya
 #* variables del cuestionario y solo se haga referencia al insumo.
 
-#! IMPORTANTE La nota anterior también aplica para las categorías 1 y 4 de la variable perper_delito.
+# ! IMPORTANTE La nota anterior también aplica para las categorías 1 y 4 de la variable perper_delito.
 
 # 3.3 Imputar 85, 88 y 99 --------------------------------------------------------------------------------------------------------------------------------
 
@@ -155,6 +155,22 @@ enusc <- reduce2(
     .init = enusc
 )
 
+# 3.4 Generar output de recode -----------------------------------------------------------------------------------------------------------------------------
+
+# Crear string de variables fuente
+vars_fuente <- map(
+    seq_along(rec_vars),
+    \(i) paste(rec_vars[[i]], collapse = "; ")
+) %>% set_names(names(rec_vars))
+
+# Cambiar manualmente string de variables para perper_delito
+vars_fuente[["perper_delito"]] <- paste(rec_vars[["perper_delito"]], collapse = "; ")
+
+metadata_recode <- tibble(
+    variable_recodificada = names(rec_vars),
+    variables_fuente = as.character(vars_fuente)
+)
+
 # 4. Guardar bbdd ------------------------------------------------------------------------------------------------------------------------------------------
 saveRDS(enusc, "input/data/proc/enusc_2_recode.RDS")
 
@@ -169,3 +185,6 @@ enusc_na <- reduce(
 )
 
 saveRDS(enusc_na, "input/data/proc/enusc_na_2_recode.RDS")
+
+# Guardar metadata
+writexl::write_xlsx(metadata_recode, "output/metadata_recode.xlsx")
