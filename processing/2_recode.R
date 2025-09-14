@@ -4,7 +4,7 @@
 # Institución: PNUD
 # Responsable: Consultor técnico - MVM
 # Resumen ejecutivo: Este script contiene el código para la recodificación de las variables principales
-# Date: 12 de septiembre de 2025
+# Fecha: 14 de septiembre de 2025
 #******************************************************************************************************************************************************
 
 rm(list = ls())
@@ -25,7 +25,9 @@ pacman::p_load(
 
 # 2. Cargar datos y funciones ----------------------------------------------------------------------------------------------------------------------------
 
-enusc <- readRDS("input/data/proc/enusc_1_select_desc.RDS")
+enusc <- readRDS("input/data/proc/enusc_1_select_desc.RDS") %>%
+    select(-contains("_adoptadas_")) # Eliminar columnas que no usaremos (Medidas personales y comunitarias adoptadas en los últimos 12 meses)
+
 source("processing/helpers/functions.R")
 
 # Declarar fecha y usuario
@@ -57,16 +59,32 @@ rec_vars <- list(
     comper_vida_cotidiana = paste0("comper_p_mod_actividades_", c(1:2, 8)),
     comper_transporte = paste0("comper_p_mod_actividades_", c(4:6, 13)),
     comper_gasto_medidas = c("comper_costos_medidas"),
-    comgen_medidas_per = paste0("comgen_medidas_", c("cerco", "rejas", "proteccion")),
-    comgen_medidas_com = paste0("comgen_vecinos_medidas_", c("vigilancia", "al_comunit", "coord_pol", "coord_mun", "televig"))
+    comgen_medidas_per = list(
+        "85" = "comgen_medidas_na",
+        "88" = "comgen_medidas_ns",
+        "99" = "comgen_medidas_nr",
+        "1" = paste0("comgen_medidas_", c("cerco", "rejas", "proteccion"))
+    ),
+    comgen_medidas_com = list(
+        "85" = "comgen_vecinos_medidas_na",
+        "88" = "comgen_vecinos_medidas_ns",
+        "99" = "comgen_vecinos_medidas_nr",
+        "1" = paste0("comgen_vecinos_medidas_", c("vigilancia", "al_comunit", "coord_pol", "coord_mun", "televig"))
+    )
 )
 
-#* NOTA TÉCNICA:
+#* NOTAS TÉCNICAS:
 #* Debido a la naturaleza de la variable perper_delito, el elemento rec_vars[["perper_delito"]]] corresponde a una lista de
 #* strings/vectores, en vez de solo un vector (como las demás variables). En esta sub-lista ( rec_vars[["perper_delito"]]] ),
 #* cada elemento corresponden a las variables que se utilizarán para recodificar cada categoría del case_when(). Por ejemplo,
 #* el elemento 1 ( rec_vars[["perper_delito"]][[1]] ) corresponde a perper_p_expos_delito. Esta es la variable que permitirá
 #* generar la categoría "1. No cree que será victima de delito", cuando perper_p_expos_delito == 2.
+
+#* Las variables de comgen_medidas_per y comgen_medidas_com siguen una lógica similar a perper_delito, en tanto los elementos
+#* rec_vars[["comgen_medidas_per"]] y rec_vars[["comgen_medidas_com"]] corresponden a sub-listas en vez de vectores. Sin embargo,
+#* aqui hay una diferencia más sustantiva que técnica:
+#* - En perper_delito se creaba una variable resumida con 3 categorías y ADEMÁS se manejaban los 85 y NSNR creando otras categorías (4 y 5)
+#* - En comgen_medidas_per y comgen_medidas_com se aplica esta estrategia solo para manejar explicitamente los 85 y NSNR
 
 # 3.2 Recodificar ----------------------------------------------------------------------------------------------------------------------------------------
 enusc <- enusc %>%
@@ -80,7 +98,7 @@ enusc <- enusc %>%
             if_any(rec_vars[["perper_delito"]][[2]], ~ . == 1) ~ 2, # Cree que será victima de un delito no violento
             if_any(rec_vars[["perper_delito"]][[3]], ~ . == 1) ~ 3, # Cree que será victima de un delito violento
             if_all(rec_vars[["perper_delito"]][[4]], ~ . %in% c(88, 99)) ~ 4, # No sabe/No responde si cree que será victima de delito
-            if_any(rec_vars[["perper_delito"]][[5]], ~ . == 1) ~ 5, # No sabe/No responde de qué victima será victima / Cree que será vicrtima de otro tipo de delito
+            if_any(rec_vars[["perper_delito"]][[5]], ~ . == 1) ~ 5, # No sabe/No responde de qué delito será victima / Cree que será victima de otro tipo de delito
             TRUE ~ NA
         ),
         pergen_pais = if_all(rec_vars[["pergen_pais"]], ~ . == 1),
@@ -95,8 +113,23 @@ enusc <- enusc %>%
             if_all(rec_vars[["comper_gasto_medidas"]], ~ . == 99) ~ 99,
             TRUE ~ NA
         ),
-        comgen_medidas_per = if_any(rec_vars[["comgen_medidas_per"]], ~ . == 1),
-        comgen_medidas_com = if_any(rec_vars[["comgen_medidas_com"]], ~ . == 1)
+        comgen_medidas_per = case_when(
+            # ! IMPORTANTE: se debe seguir la estrategia de lo más especifico a lo más general,
+            # ! por ello se parte recodificando los 85, 88 y 99 primero. Debido al manejo
+            # ! explicito de los 85, 88 y 99 el TRUE ~ 0 se puede leer como "No dispone de medidas".
+            if_all(rec_vars[["comgen_medidas_per"]][["85"]], ~ . == 1) ~ 85,
+            if_all(rec_vars[["comgen_medidas_per"]][["88"]], ~ . == 1) ~ 88,
+            if_all(rec_vars[["comgen_medidas_per"]][["99"]], ~ . == 1) ~ 99,
+            if_any(rec_vars[["comgen_medidas_per"]][["1"]], ~ . == 1) ~ 1,
+            TRUE ~ 0
+        ),
+        comgen_medidas_com = case_when(
+            if_all(rec_vars[["comgen_medidas_com"]][["85"]], ~ . == 1) ~ 85,
+            if_all(rec_vars[["comgen_medidas_com"]][["88"]], ~ . == 1) ~ 88,
+            if_all(rec_vars[["comgen_medidas_com"]][["99"]], ~ . == 1) ~ 99,
+            if_any(rec_vars[["comgen_medidas_com"]][["1"]], ~ . == 1) ~ 1,
+            TRUE ~ 0
+        )
     ) %>%
     mutate(
         across(where(is.logical), ~ as.numeric(.)) # Pasar de TRUE/FALSE a 1/0
@@ -109,16 +142,19 @@ enusc <- enusc %>%
 #* Sin embargo, para estas variables preferí mantener la estrategia por consistencia, de tal manera que el código de recodificación no incluya
 #* variables del cuestionario y solo se haga referencia al insumo.
 
-# ! IMPORTANTE La nota anterior también aplica para las categorías 1 y 4 de la variable perper_delito.
+# ! IMPORTANTE La nota anterior también aplica para las categorías 1 y 4 de la variable perper_delito y también para las categorías
+# ! 85, 88 y 99 de comgen_medidas_per y comgen_medidas_com.
 
 # 3.3 Imputar 85, 88 y 99 --------------------------------------------------------------------------------------------------------------------------------
 
 # Excluir variables de la imputación
-rec_vars_torec <- rec_vars[!names(rec_vars) %in% c("perper_delito", "comper_gasto_medidas")]
+excluir <- c("perper_delito", "comper_gasto_medidas", "comgen_medidas_per", "comgen_medidas_com")
+rec_vars_torec <- rec_vars[!names(rec_vars) %in% excluir]
 
 #* NOTAS:
 #* perper_delito tiene su propio manejo explicito de los NS/NR, no es necesario incluirlo en esta imputación.
 #* comper_gasto_medidas tiene un sentido sustantivo para el 85, por lo que el NS/NR se manejó explicitamente en la recodificación
+#* comgen_medidas_per y comgen_medidas_com también se excluyen ya que su manejo de 85 y NS/NR se realizó en la recodificación
 
 # Imputar!
 enusc <- reduce2(
@@ -155,21 +191,22 @@ enusc <- reduce2(
     .init = enusc
 )
 
-# 3.4 Generar output de recode -----------------------------------------------------------------------------------------------------------------------------
+# 3.5 Generar output de recode -----------------------------------------------------------------------------------------------------------------------------
 
-# Crear string de variables fuente
-vars_fuente <- map(
-    seq_along(rec_vars),
-    \(i) paste(rec_vars[[i]], collapse = "; ")
-) %>% set_names(names(rec_vars))
+# ! PENDIENTE
+# # Crear string de variables fuente
+# vars_fuente <- map(
+#     seq_along(rec_vars),
+#     \(i) paste(rec_vars[[i]], collapse = "; ")
+# ) %>% set_names(names(rec_vars))
 
-# Cambiar manualmente string de variables para perper_delito
-vars_fuente[["perper_delito"]] <- paste(rec_vars[["perper_delito"]], collapse = "; ")
+# # Cambiar manualmente string de variables para perper_delito
+# vars_fuente[["perper_delito"]] <- paste(rec_vars[["perper_delito"]], collapse = "; ")
 
-metadata_recode <- tibble(
-    variable_recodificada = names(rec_vars),
-    variables_fuente = as.character(vars_fuente)
-)
+# metadata_recode <- tibble(
+#     variable_recodificada = names(rec_vars),
+#     variables_fuente = as.character(vars_fuente)
+# )
 
 # 4. Guardar bbdd ------------------------------------------------------------------------------------------------------------------------------------------
 saveRDS(enusc, "input/data/proc/enusc_2_recode.RDS")
@@ -186,5 +223,5 @@ enusc_na <- reduce(
 
 saveRDS(enusc_na, "input/data/proc/enusc_na_2_recode.RDS")
 
-# Guardar metadata
-writexl::write_xlsx(metadata_recode, "output/metadata_recode.xlsx")
+# # Guardar metadata
+# writexl::write_xlsx(metadata_recode, "output/metadata_recode.xlsx")

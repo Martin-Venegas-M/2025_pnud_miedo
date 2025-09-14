@@ -92,12 +92,14 @@ etiquetas_valores <- list(
     "comgen_medidas_per" = c(
         "Dispone de medidas personales" = 1,
         "No dispone de medidas personales" = 0,
+        "No aplica" = 85,
         "No sabe" = 88,
         "No responde" = 99
     ),
     "comgen_medidas_com" = c(
         "Dispone de medidas comunitarias" = 1,
         "No dispone de medidas comunitarias" = 0,
+        "No aplica" = 85,
         "No sabe" = 88,
         "No responde" = 99
     )

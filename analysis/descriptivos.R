@@ -4,7 +4,7 @@
 # Institución: PNUD
 # Responsable: Consultor técnico - MVM
 # Resumen ejecutivo: Este script contiene el código para la generación de descriptivos de las variables recodificadas
-# Fecha: 12 de septiembre de 2025
+# Fecha: 14 de septiembre de 2025
 #******************************************************************************************************************************************************
 
 rm(list = ls())
@@ -54,5 +54,5 @@ results_unw <- map(rec_vars, ~ tab_frq1(var = !!sym(.x), w = NULL, verbose = FAL
 # 4. Guardar --------------------------------------------------------------------------------------------------------------------------------------------
 
 # Formatear y guardar tablas
-format_tab_excel(results, sheet = "Recodificadas ponderadas", save = TRUE, path = glue("output/tables/{date}_rec_vars_tabs.xlsx"))
-format_tab_excel(results_unw, sheet = "Recodificadas muestrales", save = TRUE, path = glue("output/tables/{date}_rec_vars_tabs_unw.xlsx"))
+format_tab_excel(results, sheet = "Recodificadas ponderadas", save = TRUE, path = glue("output/tables/{date}b_rec_vars_tabs.xlsx"))
+format_tab_excel(results_unw, sheet = "Recodificadas muestrales", save = TRUE, path = glue("output/tables/{date}b_rec_vars_tabs_unw.xlsx"))
