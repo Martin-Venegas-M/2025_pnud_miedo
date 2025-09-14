@@ -421,6 +421,22 @@ all_tabs$comgen$comgen_medidas_foco %>% format_kable()
 ```{r}
 all_tabs$comgen$comgen_medidas_otro %>% format_kable()
 ```
+
+# No tenemos ninguna medida de seguridad
+```{r}
+all_tabs$comgen$comgen_medidas_na %>% format_kable()
+```
+
+# No sabe
+```{r}
+all_tabs$comgen$comgen_medidas_ns %>% format_kable()
+```
+
+# No responde
+```{r}
+all_tabs$comgen$comgen_medidas_nr %>% format_kable()
+```
+
 :::
 
 ## ¿Cuál de estas medidas adoptó en los últimos doce meses
@@ -503,6 +519,16 @@ all_tabs$comgen$comgen_vecinos_medidas_televig %>% format_kable()
 # Tenemos contratados vigilantes privados
 ```{r}
 all_tabs$comgen$comgen_vecinos_medidas_privad %>% format_kable()
+```
+
+# No tenemos ninguna medida de seguridad
+```{r}
+all_tabs$comgen$comgen_vecinos_medidas_na %>% format_kable()
+```
+
+# No sabe
+```{r}
+all_tabs$comgen$comgen_vecinos_medidas_ns %>% format_kable()
 ```
 
 # No responde
