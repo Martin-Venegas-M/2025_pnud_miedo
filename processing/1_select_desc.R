@@ -146,7 +146,7 @@ wb_tabs <- reduce2(
 )
 
 # Guardar el excel
-saveWorkbook(wb_tabs, glue("output/tables/{date}_dimvars_tabs.xlsx"))
+saveWorkbook(wb_tabs, glue("output/tables/{date}_dim_vars_tabs.xlsx"))
 
 # Guardar lista con las tablas
 rm(list = ls()[!ls() %in% c("all_tabs")])
