@@ -76,7 +76,7 @@ tab_frq2 <- function(svyobj = enusc_svy, grp_var, var, verbose = TRUE, sep_verbo
 
 
 # Función de formateo excel (hecha por Chat GPT y adaptada por mi)
-format_tab_excel <- function(df, wb, sheet, var_col = "variable") {
+format_tab_excel <- function(df, wb = openxlsx::createWorkbook(), sheet, var_col = "variable", save = FALSE, path) {
     stopifnot(var_col %in% names(df))
 
     # Añadir pestaña
@@ -120,7 +120,11 @@ format_tab_excel <- function(df, wb, sheet, var_col = "variable") {
         )
     }
 
-    return(wb)
+    if(save){
+        saveWorkbook(wb, path, overwrite = TRUE)
+    } else {
+       return(wb)
+    }
 
 }
 
