@@ -76,10 +76,10 @@ tab_frq2 <- function(svyobj = enusc_svy, grp_var, var, verbose = TRUE, sep_verbo
 
 
 # Función de formateo excel (hecha por Chat GPT y adaptada por mi)
-format_tab_excel <- function(df, path, sheet = "Tabla", var_col = "variable") {
+format_tab_excel <- function(df, wb, sheet, var_col = "variable") {
     stopifnot(var_col %in% names(df))
 
-    wb <- createWorkbook()
+    # Añadir pestaña
     addWorksheet(wb, sheet)
 
     # Escribimos los datos (sin filtros todavía)
@@ -120,13 +120,9 @@ format_tab_excel <- function(df, path, sheet = "Tabla", var_col = "variable") {
         )
     }
 
-    # Guardar
-    saveWorkbook(wb, file = path, overwrite = TRUE)
-    invisible(path)
-}
+    return(wb)
 
-# Test
-# format_tab_excel(emper_tabs, path = "empr_tabs_formateada.xlsx", sheet = "EMPER")
+}
 
 # Formateo español para excel
 pre_proc_excel <- function(x) {

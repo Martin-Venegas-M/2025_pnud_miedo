@@ -107,13 +107,12 @@ comper_vars <- enusc %>%
     names()
 comgen_vars <- enusc %>%
     select(
-        starts_with("comgen"), -comgen_medidas_na, -comgen_medidas_ns, -comgen_medidas_nr,
-        -comgen_adoptadas_na, -comgen_adoptadas_otro, -comgen_vecinos_medidas_na,
-        -comgen_vecinos_medidas_ns, -comgen_medidas_nr, -comgen_vecinos_adoptadas_na
-    ) %>%
+        starts_with("comgen"),
+        -comgen_adoptadas_na, -comgen_vecinos_adoptadas_na # ! PARCHE: Tuve que eliminar estas dos porque tenían 100% NA y eso hacía fallar la iteración.
+    ) %>% #* IDEA: Incorporar a tab_frq1() un error que detenga la función si es que la tabla tiene 100% NA.
     names()
 
-# Iterar! # no genera bien algunas tablas - revisar
+# Iterar!
 emper_tabs <- map(emper_vars, ~ tab_frq1(var = {{ .x }})) %>% set_names(emper_vars)
 perper_tabs <- map(perper_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|en su|en el)\\s*")) %>% set_names(perper_vars)
 pergen_tabs <- map(pergen_vars, ~ tab_frq1(var = {{ .x }}, pattern_verbose = "(\\?|en su|en el)\\s*")) %>% set_names(pergen_vars)
@@ -129,12 +128,25 @@ all_tabs <- list(emper_tabs, perper_tabs, pergen_tabs, comper_tabs, comgen_tabs)
 # Guardar bbdd enusc
 saveRDS(enusc, "input/data/proc/enusc_1_select_desc.RDS")
 
-# Guardar tablas en excel
-map2(
+# Crear workbook vacio
+wb_tabs <- createWorkbook()
+
+# Iterar sobre el workbook para añadir las pestañas formateadas por dimensión
+wb_tabs <- reduce2(
     seq_along(all_tabs),
     dim_names,
-    ~ format_tab_excel(all_tabs[[.x]] %>% list_rbind() %>% pre_proc_excel(), path = glue("output/tables/{date}_{.y}_tab_format.xlsx", sheet = .y))
+    \(workbook, data, sheetname) {
+        format_tab_excel(
+            df = all_tabs[[data]] %>% list_rbind() %>% pre_proc_excel(),
+            wb = workbook,
+            sheet = sheetname
+        )
+    },
+    .init = wb_tabs
 )
+
+# Guardar el excel
+saveWorkbook(wb_tabs, glue("output/tables/{date}_dimvars_tabs.xlsx"))
 
 # Guardar lista con las tablas
 rm(list = ls()[!ls() %in% c("all_tabs")])
