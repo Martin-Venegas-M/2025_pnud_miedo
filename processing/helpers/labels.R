@@ -16,23 +16,89 @@ etiquetas_variables <- c(
 )
 
 etiquetas_valores <- list(
-    "emper_transporte" = c("Muy inseguro/Inseguro en Transporte" = 1, "Muy seguro/Seguro en Transporte" = 0),
-    "emper_recreacion" = c("Muy inseguro/Inseguro en Recreación" = 1, "Muy seguro/Seguro en Recreación" = 0),
-    "emper_barrio" = c("Muy inseguro/Inseguro en el Barrio" = 1, "Muy seguro/Seguro en el Barrio" = 0),
-    "emper_casa" = c("Muy inseguro/Inseguro en la Casa" = 1, "Muy seguro/Seguro en Casa" = 0),
+    "emper_transporte" = c(
+        "Muy inseguro/Inseguro en Transporte" = 1,
+        "Muy seguro/Seguro en Transporte" = 0,
+        "No aplica" = 85,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
+    "emper_recreacion" = c(
+        "Muy inseguro/Inseguro en Recreación" = 1,
+        "Muy seguro/Seguro en Recreación" = 0,
+        "No aplica" = 85,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
+    "emper_barrio" = c(
+        "Muy inseguro/Inseguro en el Barrio" = 1,
+        "Muy seguro/Seguro en el Barrio" = 0,
+        "No aplica" = 85,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
+    "emper_casa" = c(
+        "Muy inseguro/Inseguro en la Casa" = 1,
+        "Muy seguro/Seguro en Casa" = 0,
+        "No aplica" = 85,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
     "perper_delito" = c(
         "No cree que será victima de delito" = 1,
         "Cree que será victima de delito no violento" = 2,
         "Cree que será victima de delito violento" = 3,
         "No sabe/No responde si cree que será victima de delito" = 4,
-        "No sabe/No responde de qué victima será victima / Cree que será vicrtima de otro tipo de delito" = 5
+        "No sabe/No responde de qué delito será victima / Cree que será victima de otro tipo de delito" = 5
     ),
-    "pergen_pais" = c("Aumentó delincuencia en País" = 1, "Se mantuvo/Disminuyó delincuencia en País" = 0),
-    "pergen_comuna" = c("Aumentó delincuencia en Comuna" = 1, "Se mantuvo/Disminuyó delincuencia en Comuna" = 0),
-    "pergen_barrio" = c("Aumentó delincuencia en Barrio" = 1, "Se mantuvo/Disminuyó delincuencia en Barrio" = 0),
-    "comper_vida_cotidiana" = c("Modifica comportamiento en Vida Cotidiana" = 1, "No modifica comportamiento en Vida Cotidiana" = 0),
-    "comper_transporte" = c("Modifica comportamiento en Transporte" = 1, "No modifica comportamiento en Transporte" = 0),
-    "comper_gasto_medidas" = c("Gasta en medidas de seguridad" = 1, "No gasta en medidas de seguridad" = 0),
-    "comgen_medidas_per" = c("Dispone de medidas personales" = 1, "No dispone de medidas personales" = 0),
-    "comgen_medidas_com" = c("Dispone de medidas comunitarias" = 1, "No dispone de medidas comunitarias" = 0)
+    "pergen_pais" = c(
+        "Aumentó delincuencia en País" = 1,
+        "Se mantuvo/Disminuyó delincuencia en País" = 0,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
+    "pergen_comuna" = c(
+        "Aumentó delincuencia en Comuna" = 1,
+        "Se mantuvo/Disminuyó delincuencia en Comuna" = 0,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
+    "pergen_barrio" = c(
+        "Aumentó delincuencia en Barrio" = 1,
+        "Se mantuvo/Disminuyó delincuencia en Barrio" = 0,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
+    "comper_vida_cotidiana" = c(
+        "Modifica comportamiento en Vida Cotidiana" = 1,
+        "No modifica comportamiento en Vida Cotidiana" = 0,
+        "No aplica" = 85,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
+    "comper_transporte" = c(
+        "Modifica comportamiento en Transporte" = 1,
+        "No modifica comportamiento en Transporte" = 0,
+        "No aplica" = 85,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
+    "comper_gasto_medidas" = c(
+        "Gasta en medidas de seguridad" = 1,
+        "No gasta en medidas de seguridad" = 0,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
+    "comgen_medidas_per" = c(
+        "Dispone de medidas personales" = 1,
+        "No dispone de medidas personales" = 0,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
+    "comgen_medidas_com" = c(
+        "Dispone de medidas comunitarias" = 1,
+        "No dispone de medidas comunitarias" = 0,
+        "No sabe" = 88,
+        "No responde" = 99
+    )
 )
