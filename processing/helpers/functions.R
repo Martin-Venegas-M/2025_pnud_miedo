@@ -120,12 +120,11 @@ format_tab_excel <- function(df, wb = openxlsx::createWorkbook(), sheet, var_col
         )
     }
 
-    if(save){
+    if (save) {
         saveWorkbook(wb, path, overwrite = TRUE)
     } else {
-       return(wb)
+        return(wb)
     }
-
 }
 
 # Formateo español para excel
@@ -165,19 +164,19 @@ mca_hcpc <- function(data, n_class = 6, ...) {
     return(results)
 }
 
-plot_mca <- function(obj){
-  obj %>% 
-  fviz_mca_var(repel = TRUE,
-  col.var = "cos2",                # color = calidad de representación
-  gradient.cols = c("#B3CDE3","#6497B1","#03396C"),
-  ggtheme = theme_minimal()
-  ) +
-  ggtitle("MCA: categorías (Dim1 vs Dim2)") +
-  theme(legend.position = "right")
-
+plot_mca <- function(obj) {
+    obj %>%
+        fviz_mca_var(
+            repel = TRUE,
+            col.var = "cos2", # color = calidad de representación
+            gradient.cols = c("#B3CDE3", "#6497B1", "#03396C"),
+            ggtheme = theme_minimal()
+        ) +
+        ggtitle("MCA: categorías (Dim1 vs Dim2)") +
+        theme(legend.position = "right")
 }
 
-plot_cluster <- function(obj){
-  obj %>% 
-  fviz_cluster(clust, geom = "point", main = "Factor map")
+plot_cluster <- function(obj) {
+    obj %>%
+        fviz_cluster(clust, geom = "point", main = "Factor map")
 }
