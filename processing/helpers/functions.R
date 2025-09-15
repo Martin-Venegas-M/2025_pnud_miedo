@@ -76,7 +76,7 @@ tab_frq2 <- function(svyobj = enusc_svy, grp_var, var, verbose = TRUE, sep_verbo
 
 
 # Función de formateo excel (hecha por Chat GPT y adaptada por mi)
-format_tab_excel <- function(df, wb = openxlsx::createWorkbook(), sheet, var_col = "variable", save = FALSE, path) {
+format_tab_excel <- function(df, wb = openxlsx::createWorkbook(), sheet, var_col = "variable", save = FALSE, path, add_metadata = FALSE, metadata) {
     stopifnot(var_col %in% names(df))
 
     # Añadir pestaña
@@ -118,6 +118,27 @@ format_tab_excel <- function(df, wb = openxlsx::createWorkbook(), sheet, var_col
             style = group_border,
             rows = ends + 1, cols = 1:n_cols, gridExpand = TRUE, stack = TRUE
         )
+    }
+
+    if (add_metadata) {
+        addWorksheet(wb, "metadata")
+        writeData(wb, "metadata", x = metadata)
+
+        header_style <- createStyle(
+            fgFill = "#fcd5b4",
+            textDecoration = "bold",
+            halign = "center",
+            valign = "center",
+            border = "bottom",
+            borderStyle = "thick"
+        )
+
+        addStyle(
+            wb, "metadata", header_style,
+            rows = 1, cols = 1:ncol(metadata), gridExpand = TRUE, stack = TRUE
+        )
+
+        setColWidths(wb, "metadata", cols = c(1:3, 5), widths = "auto")
     }
 
     if (save) {

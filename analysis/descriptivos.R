@@ -36,6 +36,9 @@ enusc_svy <- enusc %>% as_survey_design(ids = conglomerado, stata = varstrat, we
 date <- format(Sys.Date(), "%y%m%d")
 user <- tolower(Sys.info()["user"])
 
+# Cargar metadata
+metadata_recode <- readxl::read_excel("output/metadata_recode.xlsx")
+
 # 3. Ejecutar código -------------------------------------------------------------------------------------------------------------------------------------
 
 # Crear vector con nombres de variables recodificadas
@@ -54,5 +57,20 @@ results_unw <- map(rec_vars, ~ tab_frq1(var = !!sym(.x), w = NULL, verbose = FAL
 # 4. Guardar --------------------------------------------------------------------------------------------------------------------------------------------
 
 # Formatear y guardar tablas
-format_tab_excel(results, sheet = "Recodificadas ponderadas", save = TRUE, path = glue("output/tables/{date}_rec_vars_tabs.xlsx"))
-format_tab_excel(results_unw, sheet = "Recodificadas muestrales", save = TRUE, path = glue("output/tables/{date}_rec_vars_tabs_unw.xlsx"))
+format_tab_excel(
+    results, 
+    sheet = "Recodificadas ponderadas", 
+    add_metadata = TRUE,
+    metadata = metadata_recode,
+    save = TRUE, 
+    path = glue("output/tables/{date}_rec_vars_tabs.xlsx")
+    )
+
+format_tab_excel(
+    results_unw, 
+    sheet = "Recodificadas muestrales", 
+    add_metadata = TRUE,
+    metadata = metadata_recode,
+    save = TRUE, 
+    path = glue("output/tables/{date}_rec_vars_tabs_unw.xlsx")
+    )
