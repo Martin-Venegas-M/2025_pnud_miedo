@@ -191,22 +191,8 @@ enusc <- reduce2(
     .init = enusc
 )
 
-# 3.5 Generar output de recode -----------------------------------------------------------------------------------------------------------------------------
-
-# ! PENDIENTE
-# # Crear string de variables fuente
-# vars_fuente <- map(
-#     seq_along(rec_vars),
-#     \(i) paste(rec_vars[[i]], collapse = "; ")
-# ) %>% set_names(names(rec_vars))
-
-# # Cambiar manualmente string de variables para perper_delito
-# vars_fuente[["perper_delito"]] <- paste(rec_vars[["perper_delito"]], collapse = "; ")
-
-# metadata_recode <- tibble(
-#     variable_recodificada = names(rec_vars),
-#     variables_fuente = as.character(vars_fuente)
-# )
+# 3.5 Generar metadata recode -----------------------------------------------------------------------------------------------------------------------------
+source("processing/helpers/gen_metadata_recode.R")
 
 # 4. Guardar bbdd ------------------------------------------------------------------------------------------------------------------------------------------
 saveRDS(enusc, "input/data/proc/enusc_2_recode.RDS")
@@ -223,5 +209,5 @@ enusc_na <- reduce(
 
 saveRDS(enusc_na, "input/data/proc/enusc_na_2_recode.RDS")
 
-# # Guardar metadata
-# writexl::write_xlsx(metadata_recode, "output/metadata_recode.xlsx")
+# Guardar metadata
+writexl::write_xlsx(metadata_recode, "output/metadata_recode.xlsx")
