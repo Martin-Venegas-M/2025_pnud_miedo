@@ -162,10 +162,12 @@ pre_proc_excel <- function(x) {
         rename(prc = valid.prc)
 }
 
-mca_hcpc <- function(data, n_class = 6, ...) {
-    data <- data %>%
-        dplyr::select(...) %>%
-        dplyr::mutate(across(everything(), ~ sjlabelled::to_label(.)))
+mca_hcpc <- function(data, n_class = 6, select = FALSE, ...) {
+    if (select) {
+        data <- data %>%
+            dplyr::select(...) %>%
+            dplyr::mutate(across(everything(), ~ sjlabelled::to_label(.)))
+    }
 
     # Run MCA analysis
     acm <- FactoMineR::MCA(data, graph = FALSE)

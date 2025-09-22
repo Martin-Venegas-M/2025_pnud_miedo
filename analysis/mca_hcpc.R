@@ -25,13 +25,12 @@ pacman::p_load(
     openxlsx,
     scales,
     FactoMineR,
-    factoextra,
-    visdat
-)
+    factoextra
+    )
 
 # 2. Cargar datos y funciones ----------------------------------------------------------------------------------------------------------------------------
 
-enusc <- readRDS("input/data/proc/enusc_2_recode.RDS")
+enusc <- readRDS("input/data/proc/enusc_na_2_recode.RDS")
 source("processing/helpers/functions.R")
 enusc_svy <- enusc %>% as_survey_design(ids = conglomerado, stata = varstrat, weights = fact_pers_reg)
 
@@ -41,20 +40,43 @@ user <- tolower(Sys.info()["user"])
 
 # 3. Ejecutar código -------------------------------------------------------------------------------------------------------------------------------------
 
+# 3.1 Preparar data --------------------------------------------------------------------------------------------------------------------------------------
+
 # Vector de variables a incluir
 rec_vars <- enusc %>%
-    select(emper_transporte:comgen_vecinos_adopta_medidas) %>%
+    select(emper_transporte:comgen_medidas_com) %>%
     names()
 
 # Data para prueba
-data <- enusc %>%
-    filter(perper_p_expos_delito == 1) %>%
+df <- enusc %>%
     select(all_of(rec_vars)) %>%
-    mutate(across(everything(), ~ sjlabelled::to_label(.)))
+    mutate(
+        across(everything(), ~ if_else(. == 85, NA, .)), # Pasar a NA los no aplica
+        across(perper_delito, ~ if_else(. %in% c(4, 5), NA, .)), # Pasar a NA categorías especificas de perper_delito
+        across(everything(), ~ sjlabelled::to_label(.)) # Usar las categorías para los factores
+    ) %>%
+    drop_na()
 
-# Ver casos perdidos
-visdat::vis_miss(data)
+# Test!
 
-# Correr y plotear mca
-mca <- MCA(data, graph = FALSE)
-plot_mca(mca)
+# # Correr mca y plotear
+# mca <- MCA(df, graph = FALSE)
+# plot_mca(mca)
+
+# # Correr cluster y ploteae
+# clust <- FactoMineR::HCPC(mca, nb.clust = 5, consol = FALSE, graph = FALSE)
+# plot_cluster(clust)
+
+# # Probar funcción
+# test <- mca_hcpc(df, nclass = 5)
+
+# 3.2 Iterar --------------------------------------------------------------------------------------------------------------------------------------------
+
+results_all <- map(
+    5:2,
+    ~ mca_hcpc(df, n_class = .x)
+) %>% set_names(c("class5", "class4", "class3", "class2"))
+
+# 4. Guardar --------------------------------------------------------------------------------------------------------------------------------------------
+rm(list = ls()[!ls() %in% c("results_all")])
+save.image(glue("output/models/results_mca_hcpc.RData"))
