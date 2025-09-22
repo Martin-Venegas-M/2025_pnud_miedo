@@ -1,0 +1,278 @@
+---
+title: |
+  ![](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQto98DCJv_tJBKdzJ3-jc1YNXjFquiff7iSA&s){width=10% height=10%}  
+  Análisis MCA y HCPC ENUSC
+author: 
+  - Consultor técnico - MVM
+date: "`r format(Sys.Date(), '%m/%d/%Y')`"
+output:
+    bookdown::html_document2:
+          theme: yeti
+          toc: yes
+          toc_float: yes
+          toc_collapsed: yes
+          number_sections: yes
+          fig-width: 12
+          fig-height: 10
+          
+          
+    
+linkcolor: black
+urlcolor: blue
+execute:
+  echo: false
+  warning: false
+---
+```{r packages and data}
+
+# Packages
+pacman::p_load(
+    tidyverse,
+    haven,
+    tidylog,
+    texreg,
+    rlang,
+    sjPlot,
+    glue,
+    ggeffects,
+    FactoMineR,
+    factoextra,
+    knitr,
+    kableExtra,
+    reactable
+)
+
+# Data
+# load("output/models/results_mca_hcpc.RData")
+load("../../output/models/results_mca_hcpc.RData")
+```
+
+
+```{r wrappers}
+
+plot_mca <- function(obj){
+  obj %>% 
+  fviz_mca_var(repel = TRUE,
+  col.var = "cos2",                # color = calidad de representación
+  gradient.cols = c("#B3CDE3","#6497B1","#03396C"),
+  ggtheme = theme_minimal()
+  ) +
+  ggtitle("MCA: categorías (Dim1 vs Dim2)") +
+  theme(legend.position = "right")
+
+}
+
+plot_cluster <- function(obj){
+  obj %>% 
+  fviz_cluster(clust, geom = "point", main = "Factor map")
+}
+
+```
+
+```{r desc cluster function}
+process_tab_desc_clust <- function(obj) {
+    # Save object
+    cl_cat <- obj
+
+    # Process object
+    desc_all <- imap_dfr(cl_cat, ~ {
+        as.data.frame(.x) %>%
+            rownames_to_column("var") %>%
+            mutate(cluster = .y)
+    }) %>%
+        relocate(cluster, var) %>%
+        mutate(across(where(is.numeric), ~ round(., 2))) %>%
+        separate(var,
+            into = c("variable", "categoria"),
+            sep = "=", fill = "right", extra = "merge"
+        ) %>%
+        mutate(categoria = if_else(is.na(categoria), variable, categoria)) %>%
+        relocate(variable, categoria, .after = cluster)
+
+    return(desc_all)
+}
+
+tab_desc_clust <- function(x, process = TRUE) {
+
+    # Process if needed
+    if (process) {
+        x <- process_tab_desc_clust(x)
+    }
+
+    # Create interactive table
+    reactable(
+        x,
+        groupBy = "cluster",
+        searchable = TRUE,
+        filterable = TRUE,
+        striped = TRUE,
+        highlight = TRUE,
+        defaultPageSize = 12,
+        columns = list(
+            cluster   = colDef(name = "Cluster", filterable = TRUE),
+            variable  = colDef(name = "Variable"),
+            categoria = colDef(name = "Categoría"),
+            `Cla/Mod` = colDef(name = "Cla/Mod"),
+            `Mod/Cla` = colDef(name = "Mod/Cla"),
+            Global    = colDef(name = "Global"),
+            `p.value` = colDef(name = "p-valor"),
+            `v.test`  = colDef(name = "v-test")
+        )
+    )
+}
+```
+
+
+```{r}
+format_kable <- function(x, title = "Here goes some title!"){
+  x %>% kable(
+    caption = title
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    full_width = TRUE
+  )
+}
+
+format_lines <- function(x){
+  x %>% 
+  column_spec(1, extra_css = "border-right: 2px solid #726c6c54;", include_thead = TRUE) %>% 
+  column_spec(3, extra_css = "border-right: 2px solid #726c6c54;", include_thead = TRUE) %>% 
+  column_spec(5, extra_css = "border-right: 2px solid #726c6c54;", include_thead = TRUE)
+}
+
+specific_col <- function(kbl, data, n, umbrale = 0, ...){
+      kableExtra::column_spec(kbl, n, 
+                  color = dplyr::case_when(
+                  as.matrix(data[,n]) > umbrale ~ "darkblue",
+                  as.matrix(data[,n]) < -umbrale ~ "red",
+                  TRUE ~ "lightgrey"
+                  ),
+                  ...
+                )
+}
+```
+
+# Introducción
+
+Este documento...
+
+## Tablas
+
+::: panel-tabset
+# MCA
+
+```{r}
+#| fig-width: 12
+#| fig-height: 10
+
+plot_mca(results_all$class5$acm)
+```
+
+# Class 5
+
+```{r results='asis'}
+#| fig-width: 12
+#| fig-height: 10
+
+plot_cluster(results_all$class5$clust)
+```
+
+```{r}
+tab_desc_clust(results_all$class5$clust$desc.var$category)
+```
+
+```{r}
+c5c1 <- process_tab_desc_clust(results_all$class5$clust$desc.var$category) %>% filter(cluster == 1)
+c5c2 <- process_tab_desc_clust(results_all$class5$clust$desc.var$category) %>% filter(cluster == 2)
+c5c3 <- process_tab_desc_clust(results_all$class5$clust$desc.var$category) %>% filter(cluster == 3)
+c5c4 <- process_tab_desc_clust(results_all$class5$clust$desc.var$category) %>% filter(cluster == 4)
+c5c5 <- process_tab_desc_clust(results_all$class5$clust$desc.var$category) %>% filter(cluster == 5)
+```
+
+- El cluster 1 se caracteriza por una sobrerepresentación de: **`r c5c1$categoria[[1]]`** (*v_test = `r c5c1$v.test[[1]]`*); **`r c5c1$categoria[[2]]`** (*v_test = `r c5c1$v.test[[2]]`*) and **`r c5c1$categoria[[3]]`** (*v_test = `r c5c1$v.test[[3]]`*)
+
+- El cluster 2 se caracteriza por una sobrerepresentación de: **`r c5c2$categoria[[1]]`** (*v_test = `r c5c2$v.test[[1]]`*); **`r c5c2$categoria[[2]]`** (*v_test = `r c5c2$v.test[[2]]`*) and **`r c5c2$categoria[[3]]`** (*v_test = `r c5c2$v.test[[3]]`*)
+
+- El cluster 3 se caracteriza por una sobrerepresentación de: **`r c5c3$categoria[[1]]`** (*v_test = `r c5c3$v.test[[1]]`*); **`r c5c3$categoria[[2]]`** (*v_test = `r c5c3$v.test[[2]]`*) and **`r c5c3$categoria[[3]]`** (*v_test = `r c5c3$v.test[[3]]`*)
+
+- El cluster 4 se caracteriza por una sobrerepresentación de: **`r c5c4$categoria[[1]]`** (*v_test = `r c5c4$v.test[[1]]`*); **`r c5c4$categoria[[2]]`** (*v_test = `r c5c4$v.test[[2]]`*) and **`r c5c4$categoria[[3]]`** (*v_test = `r c5c4$v.test[[3]]`*)
+
+- El cluster 5 se caracteriza por una sobrerepresentación de: **`r c5c5$categoria[[1]]`** (*v_test = `r c5c5$v.test[[1]]`*); **`r c5c5$categoria[[2]]`** (*v_test = `r c5c5$v.test[[2]]`*) and **`r c5c5$categoria[[3]]`** (*v_test = `r c5c5$v.test[[3]]`*)r c5
+
+# Class 4
+
+```{r results='asis'}
+#| fig-width: 12
+#| fig-height: 10
+
+plot_cluster(results_all$class4$clust)
+```
+
+```{r}
+tab_desc_clust(results_all$class4$clust$desc.var$category)
+```
+
+```{r}
+c4c1 <- process_tab_desc_clust(results_all$class4$clust$desc.var$category) %>% filter(cluster == 1)
+c4c2 <- process_tab_desc_clust(results_all$class4$clust$desc.var$category) %>% filter(cluster == 2)
+c4c3 <- process_tab_desc_clust(results_all$class4$clust$desc.var$category) %>% filter(cluster == 3)
+c4c4 <- process_tab_desc_clust(results_all$class4$clust$desc.var$category) %>% filter(cluster == 4)
+```
+
+- El cluster 1 se caracteriza por una sobrerepresentación de: **`r c4c1$categoria[[1]]`** (*v_test = `r c4c1$v.test[[1]]`*); **`r c4c1$categoria[[2]]`** (*v_test = `r c4c1$v.test[[2]]`*) and **`r c4c1$categoria[[3]]`** (*v_test = `r c4c1$v.test[[3]]`*)
+
+- El cluster 2 se caracteriza por una sobrerepresentación de: **`r c4c2$categoria[[1]]`** (*v_test = `r c4c2$v.test[[1]]`*); **`r c4c2$categoria[[2]]`** (*v_test = `r c4c2$v.test[[2]]`*) and **`r c4c2$categoria[[3]]`** (*v_test = `r c4c2$v.test[[3]]`*)
+
+- El cluster 3 se caracteriza por una sobrerepresentación de: **`r c4c3$categoria[[1]]`** (*v_test = `r c4c3$v.test[[1]]`*); **`r c4c3$categoria[[2]]`** (*v_test = `r c4c3$v.test[[2]]`*) and **`r c4c3$categoria[[3]]`** (*v_test = `r c4c3$v.test[[3]]`*)
+
+- El cluster 4 se caracteriza por una sobrerepresentación de: **`r c4c4$categoria[[1]]`** (*v_test = `r c4c4$v.test[[1]]`*); **`r c4c4$categoria[[2]]`** (*v_test = `r c4c4$v.test[[2]]`*) and **`r c4c4$categoria[[3]]`** (*v_test = `r c4c4$v.test[[3]]`*)
+
+# Class 3
+
+```{r results='asis'}
+#| fig-width: 12
+#| fig-height: 10
+
+plot_cluster(results_all$class3$clust)
+```
+
+```{r}
+tab_desc_clust(results_all$class3$clust$desc.var$category)
+```
+
+```{r}
+c3c1 <- process_tab_desc_clust(results_all$class3$clust$desc.var$category) %>% filter(cluster == 1)
+c3c2 <- process_tab_desc_clust(results_all$class3$clust$desc.var$category) %>% filter(cluster == 2)
+c3c3 <- process_tab_desc_clust(results_all$class3$clust$desc.var$category) %>% filter(cluster == 3)
+```
+
+- El cluster 1 se caracteriza por una sobrerepresentación de: **`r c3c1$categoria[[1]]`** (*v_test = `r c3c1$v.test[[1]]`*); **`r c3c1$categoria[[2]]`** (*v_test = `r c3c1$v.test[[2]]`*) and **`r c3c1$categoria[[3]]`** (*v_test = `r c3c1$v.test[[3]]`*)
+
+- El cluster 2 se caracteriza por una sobrerepresentación de: **`r c3c2$categoria[[1]]`** (*v_test = `r c3c2$v.test[[1]]`*); **`r c3c2$categoria[[2]]`** (*v_test = `r c3c2$v.test[[2]]`*) and **`r c3c2$categoria[[3]]`** (*v_test = `r c3c2$v.test[[3]]`*)
+
+- El cluster 3 se caracteriza por una sobrerepresentación de: **`r c3c3$categoria[[1]]`** (*v_test = `r c3c3$v.test[[1]]`*); **`r c3c3$categoria[[2]]`** (*v_test = `r c3c3$v.test[[2]]`*) and **`r c3c3$categoria[[3]]`** (*v_test = `r c3c3$v.test[[3]]`*)
+
+# Class 2
+
+```{r results='asis'}
+#| fig-width: 12
+#| fig-height: 10
+
+plot_cluster(results_all$class2$clust)
+```
+
+```{r}
+tab_desc_clust(results_all$class2$clust$desc.var$category)
+```
+
+```{r}
+c2c1 <- process_tab_desc_clust(results_all$class2$clust$desc.var$category) %>% filter(cluster == 1)
+c2c2 <- process_tab_desc_clust(results_all$class2$clust$desc.var$category) %>% filter(cluster == 2)
+```
+
+- El cluster 1 se caracteriza por una sobrerepresentación de: **`r c2c1$categoria[[1]]`** (*v_test = `r c2c1$v.test[[1]]`*); **`r c2c1$categoria[[2]]`** (*v_test = `r c2c1$v.test[[2]]`*) and **`r c2c1$categoria[[3]]`** (*v_test = `r c2c1$v.test[[3]]`*)
+
+- El cluster 2 se caracteriza por una sobrerepresentación de: **`r c2c2$categoria[[1]]`** (*v_test = `r c2c2$v.test[[1]]`*); **`r c2c2$categoria[[2]]`** (*v_test = `r c2c2$v.test[[2]]`*) and **`r c2c2$categoria[[3]]`** (*v_test = `r c2c2$v.test[[3]]`*)
+
+:::
