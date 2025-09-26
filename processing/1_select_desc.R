@@ -62,7 +62,8 @@ enusc <- enusc_original %>%
     select(
         rph_ID, idhogar, enc_region, Conglomerado, VarStrat, starts_with("Fact"),
         matches(emper), matches(perper), matches(pergen), matches(comper), matches(comgen),
-        starts_with("rph")
+        starts_with("rph"),
+        VH_DC, VP_DC, VH_DV, VP_DV
     ) %>%
     rename_with(~ glue("emper_{.x}"), matches(emper)) %>%
     rename_with(~ glue("perper_{.x}"), matches(perper)) %>%
