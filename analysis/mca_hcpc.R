@@ -26,7 +26,7 @@ pacman::p_load(
     scales,
     FactoMineR,
     factoextra
-    )
+)
 
 # 2. Cargar datos y funciones ----------------------------------------------------------------------------------------------------------------------------
 
@@ -49,11 +49,11 @@ rec_vars <- enusc %>%
 
 # Data para prueba
 df <- enusc %>%
-    select(all_of(rec_vars)) %>%
+    select(rph_id, all_of(rec_vars)) %>%
     mutate(
         across(everything(), ~ if_else(. == 85, NA, .)), # Pasar a NA los no aplica
         across(perper_delito, ~ if_else(. %in% c(4, 5), NA, .)), # Pasar a NA categorías especificas de perper_delito
-        across(everything(), ~ sjlabelled::to_label(.)) # Usar las categorías para los factores
+        across(all_of(rec_vars), ~ sjlabelled::to_label(.)) # Usar las categorías para los factores
     ) %>%
     drop_na()
 
