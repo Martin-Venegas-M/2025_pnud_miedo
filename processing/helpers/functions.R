@@ -33,24 +33,30 @@ tab_frq1 <- function(data = enusc, var, w = fact_pers_reg, verbose = TRUE, sep_v
 }
 
 # Tabla frecuencias basada en srvyr - Muestra estimaciones ponderadas y de calidad
-tab_frq2 <- function(svyobj = enusc_svy, grp_var, var, verbose = TRUE, sep_verbose = TRUE, pattern_verbose = "\\? ", ...) {
+tab_frq2 <- function(svyobj = enusc_svy, grp = FALSE, grp_var, var, verbose = TRUE, sep_verbose = TRUE, pattern_verbose = "\\? ", ...) {
     # Crear tabla de frecuencias desde del objeto encuesta
     tab <- svyobj %>%
         srvyr::group_by({{ grp_var }}, {{ var }}) %>%
         srvyr::summarise(
-            frq = survey_total(),
+            frq = survey_total(...),
             prop = survey_mean(...), # * Se pasan los argumentos por si se quieren otras medidas de calidad para la proporción
         ) %>%
         # Crear cols informativas, formatear y ordenar tabla
         srvyr::mutate(
-            label = get_labels({{ var }}),
+            label = to_label({{ var }}),
             across(starts_with("prop"), ~ round((. * 100), 2)),
             across(starts_with("frq"), ~ round(.)),
             variable = rlang::as_label(ensym(var))
         ) %>%
-        dplyr::relocate(variable, val = {{ var }}, label, everything()) %>%
-        sjlabelled::remove_all_labels() %>%
-        tibble::as_tibble()
+        dplyr::relocate(variable, val = {{ var }}, label, everything())
+
+    if (grp) {
+        tab <- tab %>%
+            mutate(
+                {{ grp_var }} := sjlabelled::to_label({{ grp_var }})
+            ) %>%
+            relocate({{ grp_var }}, .after = variable)
+    }
 
     # Si se quiere la etiqueta de la variable, incorporar y reordenar
     if (verbose) {
@@ -74,22 +80,18 @@ tab_frq2 <- function(svyobj = enusc_svy, grp_var, var, verbose = TRUE, sep_verbo
     return(tab)
 }
 
-
-# Función de formateo excel (hecha por Chat GPT y adaptada por mi)
-format_tab_excel <- function(df, wb = openxlsx::createWorkbook(), sheet, var_col = "variable", save = FALSE, path, add_metadata = FALSE, metadata) {
+# Función de formateo excel
+format_tab_excel <- function(df, wb = openxlsx::createWorkbook(), sheet, color_header = "#478ec5", var_col = "variable", sep_style = "thick", save = FALSE, path) {
     stopifnot(var_col %in% names(df))
 
-    # Añadir pestaña
+    # Añadir pestaña y escribr datos
     addWorksheet(wb, sheet)
-
-    # Escribimos los datos (sin filtros todavía)
     writeData(wb, sheet, x = df, withFilter = FALSE)
-
     n_cols <- ncol(df)
 
-    # 1) Encabezado: azul claro, negrita, borde inferior grueso
+    # Generar y añadir estilo header
     header_style <- createStyle(
-        fgFill = "#478ec5", # azul claro
+        fgFill = color_header,
         textDecoration = "bold",
         halign = "center",
         valign = "center",
@@ -101,46 +103,24 @@ format_tab_excel <- function(df, wb = openxlsx::createWorkbook(), sheet, var_col
         rows = 1, cols = 1:n_cols, gridExpand = TRUE, stack = TRUE
     )
 
-    # 2) Filtros en columnas
+    # Añadir filtros y setear anchos
     addFilter(wb, sheet, row = 1, cols = 1:n_cols)
-
-    # 3) Ancho automático de columnas
     setColWidths(wb, sheet, cols = 1:n_cols, widths = "auto")
 
-    # 4) Borde inferior grueso al cambiar de 'variable' #! INTERESANTE, PROFUNDIZAR
-    #    (línea gruesa al final de cada bloque de la variable)
+    # Añadir borde inferior grueso por cada "variable"
     ends <- which(df[[var_col]] != dplyr::lead(df[[var_col]], default = tail(df[[var_col]], 1)))
+
     if (length(ends)) {
-        group_border <- createStyle(border = "bottom", borderStyle = "thick")
-        # +1 porque los datos comienzan en la fila 2 (fila 1 = encabezado)
+        group_border <- createStyle(border = "bottom", borderStyle = sep_style)
+
         addStyle(
             wb, sheet,
             style = group_border,
-            rows = ends + 1, cols = 1:n_cols, gridExpand = TRUE, stack = TRUE
+            rows = ends + 1, cols = 1:n_cols, gridExpand = TRUE, stack = TRUE # +1 porque los datos comienzan en la fila 2 (fila 1 = encabezado)
         )
     }
 
-    if (add_metadata) {
-        addWorksheet(wb, "metadata")
-        writeData(wb, "metadata", x = metadata)
-
-        header_style <- createStyle(
-            fgFill = "#fcd5b4",
-            textDecoration = "bold",
-            halign = "center",
-            valign = "center",
-            border = "bottom",
-            borderStyle = "thick"
-        )
-
-        addStyle(
-            wb, "metadata", header_style,
-            rows = 1, cols = 1:ncol(metadata), gridExpand = TRUE, stack = TRUE
-        )
-
-        setColWidths(wb, "metadata", cols = c(1:3, 5), widths = "auto")
-    }
-
+    # Guardar si asi se solicita
     if (save) {
         saveWorkbook(wb, path, overwrite = TRUE)
     } else {
@@ -149,20 +129,33 @@ format_tab_excel <- function(df, wb = openxlsx::createWorkbook(), sheet, var_col
 }
 
 # Formateo español para excel
-pre_proc_excel <- function(x) {
+pre_proc_excel <- function(x, type = "tab_frq1") {
     # Preprocesamiento
-    x %>%
-        filter(!is.na(val)) %>% # Sacamos la fila de NA
-        mutate(
-            # Pasamos a formato español
-            frq = number(frq, big.mark = ".", decimal.mark = ","),
-            across(c(raw.prc, valid.prc, cum.prc), ~ number(., big.mark = ".", decimal.mark = ",", accuracy = 0.01))
-        ) %>%
-        select(-starts_with("raw")) %>% # Eliminamos la columna del raw
-        rename(prc = valid.prc)
+    if (type == "tab_frq1") {
+        x <- x %>%
+            filter(!is.na(val)) %>% # Sacamos la fila de NA
+            mutate(
+                # Pasamos a formato español
+                frq = number(frq, big.mark = ".", decimal.mark = ","),
+                across(c(raw.prc, valid.prc, cum.prc), ~ number(., big.mark = ".", decimal.mark = ",", accuracy = 0.01))
+            ) %>%
+            select(-starts_with("raw")) %>% # Eliminamos la columna del raw
+            rename(prc = valid.prc)
+        return(x)
+    }
+
+    if (type == "tab_frq2") {
+        x %>%
+            mutate(
+                # Pasamos a formato español
+                frq = number(frq, big.mark = ".", decimal.mark = ","),
+                prc = number(prop, big.mark = ".", decimal.mark = ",", accuracy = 0.01)
+            ) %>%
+            select(-starts_with("prop"))
+    }
 }
 
-mca_hcpc <- function(data, n_class = 6, select = FALSE, ...) {
+mca_hcpc <- function(data, n_class = 6, select = FALSE, id_col = "rph_id", ...) {
     if (select) {
         data <- data %>%
             dplyr::select(...) %>%
@@ -170,7 +163,7 @@ mca_hcpc <- function(data, n_class = 6, select = FALSE, ...) {
     }
 
     # Run MCA analysis
-    acm <- FactoMineR::MCA(data, graph = FALSE)
+    acm <- FactoMineR::MCA(data %>% select(-{{ id_col }}), graph = FALSE)
 
     # Run cluster analysis
     clust <- FactoMineR::HCPC(acm, nb.clust = n_class, consol = FALSE, graph = FALSE)
@@ -202,4 +195,10 @@ plot_mca <- function(obj) {
 plot_cluster <- function(obj) {
     obj %>%
         fviz_cluster(clust, geom = "point", main = "Factor map")
+}
+
+gen_vct <- function(...) {
+    enusc %>%
+        select(...) %>%
+        names()
 }
