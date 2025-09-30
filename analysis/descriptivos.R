@@ -94,51 +94,76 @@ rec_sec_vars <- map2(
 ) %>%
     set_names(str_trunc(glue("{df$rec_vars} x {str_replace(df$sec_vars, 'rph_', '')}"), 30))
 
-# 3.4 Cruces variables recodificadas x cluster ----------------------------------------------------------------------------------------------------------
+# 3.4 Cruces variables x cluster ----------------------------------------------------------------------------------------------------------
 
-df <- expand_grid(
-    clust = "clusters_5",
-    rec_vars = gen_vct(emper_transporte:comgen_medidas_com),
+# Guardar tablas de variables por cluster
+tab_var_clust <- function(clust_var, vector_vars, save = FALSE, type_var_str) {
+    nclust <- str_sub(clust_var, -1) # Numero de cluster
+    short_clust_var <- glue("clust{nclust}") # Nombre corto del cluster
+
+    # Combinaciones de las tablas
+    df <- expand_grid(
+        clust = clust_var,
+        vars = vector_vars,
+    )
+
+    # Objeto encuesta filtrado por casos validos del cluster
+    svy <- enusc_svy %>% filter(!is.na(.data[[{{ clust_var }}]]))
+
+    # Generar tablas
+    clust_vars <- map2(
+        df$vars,
+        df$clust,
+        ~ tab_frq2(
+            svyobj = svy,
+            var = !!sym(.x),
+            grp = TRUE,
+            grp_var = !!sym(.y),
+            verbose = FALSE,
+            vartype = NULL
+        ),
+        .progress = TRUE
+    ) %>%
+        set_names(str_trunc(glue("{df$vars} x {str_replace(df$clust, clust_var, short_clust_var)}"), 30))
+
+    # Guardar si es necesario
+    if (save) {
+        wb_tabs <- reduce(
+            seq_along(clust_vars),
+            \(workbook, i) {
+                format_tab_excel(
+                    pre_proc_excel(clust_vars[[i]], type = "tab_frq2"),
+                    wb = workbook,
+                    sheet = names(clust_vars)[[i]],
+                    var_col = names(clust_vars[[i]][2]),
+                    sep_style = "dashed"
+                )
+            },
+            .init = createWorkbook()
+        )
+        saveWorkbook(wb_tabs, glue("output/tables/{date}_{type_var_str}_x_clust{nclust}_vars_tabs.xlsx"), overwrite = TRUE)
+    }
+
+    return(clust_vars)
+}
+
+CLUSTER_A_SACAR <- "clusters_4" # ! IMPORTANTE: Cluster para usar en las tablas
+
+# Crear y guardar tablas de recodificadas x cluster
+rec_clust_vars <- tab_var_clust(
+    clust_var = CLUSTER_A_SACAR,
+    vector_vars = gen_vct(emper_transporte:comgen_medidas_com),
+    save = TRUE, 
+    type_var_str = "rec"
 )
 
-# Ponderadas
-rec_clust_vars <- map2(
-    df$rec_vars,
-    df$clust,
-    ~ tab_frq2(
-        svyobj = enusc_svy %>% filter(!is.na(clusters_5)),
-        var = !!sym(.x),
-        grp = TRUE,
-        grp_var = !!sym(.y),
-        verbose = FALSE,
-        vartype = NULL
-    ),
-    .progress = TRUE
-) %>%
-    set_names(str_trunc(glue("{df$rec_vars} x {str_replace(df$clust, 'clusters_5', 'clust5')}"), 30))
-
-# 3.5 Cruces variables secundarias x cluster ----------------------------------------------------------------------------------------------------------
-
-df <- expand_grid(
-    clust = "clusters_5",
-    sec_vars = c("rph_sexo", "rph_nivel", "rph_edad", "rph_nse", "vp_dc", "vp_dv")
+# Crear y guardar tablas de secundarias x cluster
+sec_clust_vars <- tab_var_clust(
+    clust_var = CLUSTER_A_SACAR,
+    vector_vars = c("rph_sexo", "rph_nivel", "rph_edad", "rph_nse", "vp_dc", "vp_dv"),
+    save = TRUE,
+    type_var_str = "sec"
 )
-
-# Ponderadas
-sec_clust_vars <- map2(
-    df$sec_vars,
-    df$clust,
-    ~ tab_frq2(
-        svyobj = enusc_svy %>% filter(!is.na(clusters_5)),
-        var = !!sym(.x),
-        grp = TRUE,
-        grp_var = !!sym(.y),
-        verbose = FALSE,
-        vartype = NULL
-    ),
-    .progress = TRUE
-) %>%
-    set_names(str_trunc(glue("{str_replace(df$sec_vars, 'rph_', '')} x {str_replace(df$clust, 'clusters_5', 'clust5')} "), 30))
 
 # 4. Guardar --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -165,38 +190,6 @@ wb_tabs <- reduce(
     .init = createWorkbook()
 )
 saveWorkbook(wb_tabs, glue("output/tables/{date}_rec_x_sec_vars_tabs.xlsx"), overwrite = TRUE)
-
-# Bivariados recodificadas x cluster
-wb_tabs <- reduce(
-    seq_along(rec_clust_vars),
-    \(workbook, i) {
-        format_tab_excel(
-            pre_proc_excel(rec_clust_vars[[i]], type = "tab_frq2"),
-            wb = workbook,
-            sheet = names(rec_clust_vars)[[i]],
-            var_col = names(rec_clust_vars[[i]][2]),
-            sep_style = "dashed"
-        )
-    },
-    .init = createWorkbook()
-)
-saveWorkbook(wb_tabs, glue("output/tables/{date}_rec_x_clust_vars_tabs.xlsx"), overwrite = TRUE)
-
-# Bivariados sociodemográficas x cluster
-wb_tabs <- reduce(
-    seq_along(sec_clust_vars),
-    \(workbook, i) {
-        format_tab_excel(
-            pre_proc_excel(sec_clust_vars[[i]], type = "tab_frq2"),
-            wb = workbook,
-            sheet = names(sec_clust_vars)[[i]],
-            var_col = names(sec_clust_vars[[i]][2]),
-            sep_style = "dashed"
-        )
-    },
-    .init = createWorkbook()
-)
-saveWorkbook(wb_tabs, glue("output/tables/{date}_sec_x_clust_vars_tabs.xlsx"), overwrite = TRUE)
 
 # 4.2 Tablas muestrales ---------------------------------------------------------------------------------------------------------------------------------
 # ! PENDIENTE

@@ -29,19 +29,23 @@ load("output/models/results_mca_hcpc.RData")
 
 # 3. Ejecutar código -------------------------------------------------------------------------------------------------------------------------------------
 
-df_clust <- results_all$class5$data %>% select(rph_id, clusters_5)
+# Add nclust variable to the dataset
+add_clust <- function(data, nclust) {
+    df_clust <- results_all[[glue("class{nclust}")]]$data %>% select(all_of(c("rph_id", glue("clusters_{nclust}"))))
 
-enusc <- enusc %>% 
-    left_join(df_clust) %>% 
-    mutate(
-    clusters_5 = factor(
-        clusters_5,
-        levels = c(1:5),
-        labels = paste0("Cluster ", 1:5)
-        )
+    data <- data %>%
+        left_join(df_clust) %>%
+        mutate(across(glue("clusters_{nclust}"), ~ factor(., levels = c(1:nclust), labels = paste0("Cluster ", 1:nclust))))
+
+    return(data)
+}
+
+# Iterate function
+enusc <- reduce(
+    2:5,
+    \(data, nclust) add_clust(data, nclust),
+    .init = enusc
 )
-
-sjmisc::frq(enusc$clusters_5)
 
 # 4. Guardar bbdd -----------------------------------------------------------------------------------------------------------------------------------------
 saveRDS(enusc, "input/data/proc/enusc_3_add_vars.RDS")
