@@ -54,8 +54,8 @@ create_var_pct <- function(
         mutate(
             not_valid = sum(if_else(value == 85, 1, 0)),
             n_valid = n() - not_valid,
-            n_insecure = sum(if_else(value %in% success.cats, 1, 0)),
-            "{name.var.pct}" := (n_insecure / n_valid) * 100
+            n_success = sum(if_else(value %in% success.cats, 1, 0)),
+            "{name.var.pct}" := (n_success / n_valid) * 100
         ) %>%
         ungroup() %>%
         select(-not_valid)
