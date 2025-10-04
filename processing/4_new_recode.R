@@ -35,9 +35,9 @@ enusc <- readRDS("input/data/proc/enusc_3_add_vars.RDS")
 create_var_pct <- function(
     data,
     id.col = rph_id,
-    insec.cats,
-    source.cols,
-    name.var.pct,
+    success.cats, # Categorías de las variables fuente que se consideran "exito". P.ej: c(1, 2) -> 1 = Muy inseguro y 2 = Inseguro
+    source.cols, # Variables fuente para construir la variable nueva
+    name.var.pct, # Nombre de la variable nuueva
     output = c("data", "details", "insumo", "all")) {
     # Match args
     output <- match.arg(output)
@@ -54,7 +54,7 @@ create_var_pct <- function(
         mutate(
             not_valid = sum(if_else(value == 85, 1, 0)),
             n_valid = n() - not_valid,
-            n_insecure = sum(if_else(value %in% insec.cats, 1, 0)),
+            n_insecure = sum(if_else(value %in% success.cats, 1, 0)),
             "{name.var.pct}" := (n_insecure / n_valid) * 100
         ) %>%
         ungroup() %>%
@@ -84,7 +84,7 @@ create_var_pct <- function(
 
 enusc <- enusc %>%
     create_var_pct(
-        insec.cats = c(1, 2),
+        success.cats = c(1, 2),
         source.cols = starts_with("emper_p_inseg_lugares"),
         name.var.pct = "emper_lugares_pct"
     )
