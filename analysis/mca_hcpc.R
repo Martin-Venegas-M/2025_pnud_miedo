@@ -43,9 +43,13 @@ user <- tolower(Sys.info()["user"])
 # 3.1 Preparar data --------------------------------------------------------------------------------------------------------------------------------------
 
 # Vector de variables a incluir
-rec_vars <- enusc %>%
-    select(emper_transporte:comgen_medidas_com) %>%
-    names()
+rec_vars <- c(
+    "emper_pct_rec", "emper_barrio", "emper_casa",
+    "perper_delito",
+    "pergen_pais", "pergen_comuna", "pergen_barrio",
+    "comper_pct_rec", "comper_gasto_medidas",
+    "comgen_medidas_per", "comgen_medidas_com"
+)
 
 # Data para prueba
 df <- enusc %>%
@@ -73,9 +77,9 @@ df <- enusc %>%
 # 3.2 Iterar --------------------------------------------------------------------------------------------------------------------------------------------
 
 results_all <- map(
-    5:2,
+    6:2,
     ~ mca_hcpc(df, n_class = .x)
-) %>% set_names(c("class5", "class4", "class3", "class2"))
+) %>% set_names(c("class6", "class5", "class4", "class3", "class2"))
 
 # 4. Guardar --------------------------------------------------------------------------------------------------------------------------------------------
 rm(list = ls()[!ls() %in% c("results_all")])

@@ -42,7 +42,7 @@ add_clust <- function(data, nclust) {
 
 # Iterate function
 enusc <- reduce(
-    2:5,
+    2:6,
     \(data, nclust) add_clust(data, nclust),
     .init = enusc
 )
