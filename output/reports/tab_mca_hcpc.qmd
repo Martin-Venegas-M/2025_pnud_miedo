@@ -166,8 +166,43 @@ Este documento...
 #| fig-width: 12
 #| fig-height: 10
 
-plot_mca(results_all$class5$acm)
+plot_mca(results_all$class6$acm)
 ```
+
+# Class 6
+
+```{r results='asis'}
+#| fig-width: 12
+#| fig-height: 10
+
+plot_cluster(results_all$class6$clust)
+```
+
+```{r}
+tab_desc_clust(results_all$class6$clust$desc.var$category)
+```
+
+```{r}
+c6c1 <- process_tab_desc_clust(results_all$class6$clust$desc.var$category) %>% filter(cluster == 1)
+c6c2 <- process_tab_desc_clust(results_all$class6$clust$desc.var$category) %>% filter(cluster == 2)
+c6c3 <- process_tab_desc_clust(results_all$class6$clust$desc.var$category) %>% filter(cluster == 3)
+c6c4 <- process_tab_desc_clust(results_all$class6$clust$desc.var$category) %>% filter(cluster == 4)
+c6c5 <- process_tab_desc_clust(results_all$class6$clust$desc.var$category) %>% filter(cluster == 5)
+c6c6 <- process_tab_desc_clust(results_all$class6$clust$desc.var$category) %>% filter(cluster == 6)
+```
+
+- El cluster 1 se caracteriza por una sobrerepresentación de: **`r c6c1$categoria[[1]]`** (*v_test = `r c6c1$v.test[[1]]`*); **`r c6c1$categoria[[2]]`** (*v_test = `r c6c1$v.test[[2]]`*) and **`r c6c1$categoria[[3]]`** (*v_test = `r c6c1$v.test[[3]]`*)
+
+- El cluster 2 se caracteriza por una sobrerepresentación de: **`r c6c2$categoria[[1]]`** (*v_test = `r c6c2$v.test[[1]]`*); **`r c6c2$categoria[[2]]`** (*v_test = `r c6c2$v.test[[2]]`*) and **`r c6c2$categoria[[3]]`** (*v_test = `r c6c2$v.test[[3]]`*)
+
+- El cluster 3 se caracteriza por una sobrerepresentación de: **`r c6c3$categoria[[1]]`** (*v_test = `r c6c3$v.test[[1]]`*); **`r c6c3$categoria[[2]]`** (*v_test = `r c6c3$v.test[[2]]`*) and **`r c6c3$categoria[[3]]`** (*v_test = `r c6c3$v.test[[3]]`*)
+
+- El cluster 4 se caracteriza por una sobrerepresentación de: **`r c6c4$categoria[[1]]`** (*v_test = `r c6c4$v.test[[1]]`*); **`r c6c4$categoria[[2]]`** (*v_test = `r c6c4$v.test[[2]]`*) and **`r c6c4$categoria[[3]]`** (*v_test = `r c6c4$v.test[[3]]`*)
+
+- El cluster 5 se caracteriza por una sobrerepresentación de: **`r c6c5$categoria[[1]]`** (*v_test = `r c6c5$v.test[[1]]`*); **`r c6c5$categoria[[2]]`** (*v_test = `r c6c5$v.test[[2]]`*) and **`r c6c5$categoria[[3]]`** (*v_test = `r c6c5$v.test[[3]]`*)
+
+- El cluster 6 se caracteriza por una sobrerepresentación de: **`r c6c6$categoria[[1]]`** (*v_test = `r c6c6$v.test[[1]]`*); **`r c6c6$categoria[[2]]`** (*v_test = `r c6c6$v.test[[2]]`*) and **`r c6c6$categoria[[3]]`** (*v_test = `r c6c6$v.test[[3]]`*)
+
 
 # Class 5
 
@@ -198,7 +233,7 @@ c5c5 <- process_tab_desc_clust(results_all$class5$clust$desc.var$category) %>% f
 
 - El cluster 4 se caracteriza por una sobrerepresentación de: **`r c5c4$categoria[[1]]`** (*v_test = `r c5c4$v.test[[1]]`*); **`r c5c4$categoria[[2]]`** (*v_test = `r c5c4$v.test[[2]]`*) and **`r c5c4$categoria[[3]]`** (*v_test = `r c5c4$v.test[[3]]`*)
 
-- El cluster 5 se caracteriza por una sobrerepresentación de: **`r c5c5$categoria[[1]]`** (*v_test = `r c5c5$v.test[[1]]`*); **`r c5c5$categoria[[2]]`** (*v_test = `r c5c5$v.test[[2]]`*) and **`r c5c5$categoria[[3]]`** (*v_test = `r c5c5$v.test[[3]]`*)r c5
+- El cluster 5 se caracteriza por una sobrerepresentación de: **`r c5c5$categoria[[1]]`** (*v_test = `r c5c5$v.test[[1]]`*); **`r c5c5$categoria[[2]]`** (*v_test = `r c5c5$v.test[[2]]`*) and **`r c5c5$categoria[[3]]`** (*v_test = `r c5c5$v.test[[3]]`*)
 
 # Class 4
 
