@@ -27,6 +27,9 @@ pacman::p_load(
 
 enusc <- readRDS("input/data/proc/enusc_3_add_vars.RDS")
 
+# Cargar labels
+source("processing/helpers/labels_new.R")
+
 # 3. Ejecutar código --------------------------------------------------------------------------------------------------------------------------------------
 
 # 3.1 Crear función ---------------------------------------------------------------------------------------------------------------------------------------
@@ -86,8 +89,72 @@ enusc <- enusc %>%
     create_var_pct(
         success.cats = c(1, 2),
         source.cols = starts_with("emper_p_inseg_lugares"),
-        name.var.pct = "emper_lugares_pct"
+        name.var.pct = "emper_pct"
+    ) %>%
+    create_var_pct(
+        success.cats = c(1, 2),
+        source.cols = paste0("emper_p_inseg_lugares_", 1:6),
+        name.var.pct = "emper_transporte_pct"
+    ) %>%
+    create_var_pct(
+        success.cats = c(1, 2),
+        source.cols = paste0("emper_p_inseg_lugares_", c(7, 10, 12)),
+        name.var.pct = "emper_recreacion_pct"
+    ) %>%
+    mutate(
+        perper_delito_new = case_when(
+            perper_p_expos_delito == 2 ~ 1, # No cree que será victima de delito
+            if_any(glue("perper_p_delito_pronostico_{c(1:4, 6, 9:11)}"), ~ . == 1) ~ 2, # Cree que será victima de un delito no violento
+            if_any(glue("perper_p_delito_pronostico_{c(5, 7:8)}"), ~ . == 1) ~ 3, # Cree que será victima de un delito violento
+            perper_p_expos_delito %in% c(88, 99) ~ 4, # No sabe/No responde si cree que será victima de delito
+            if_any(glue("perper_p_delito_pronostico_{c(77, 88, 99)}"), ~ . == 1) ~ 5 # No sabe/No responde de qué delito será victima / Cree que será victima de otro tipo de delito
+        )
+    ) %>%
+    create_var_pct(
+        success.cats = 1,
+        source.cols = starts_with("comper_p_mod_actividades"),
+        name.var.pct = "comper_pct"
+    ) %>%
+    create_var_pct(
+        success.cats = 1,
+        source.cols = paste0("comper_p_mod_actividades_", c(1:2, 8)),
+        name.var.pct = "comper_vida_cotidiana_pct"
+    ) %>%
+    create_var_pct(
+        success.cats = 1,
+        source.cols = paste0("comper_p_mod_actividades_", c(4:6, 13)),
+        name.var.pct = "comper_transporte_pct"
+    ) %>%
+    mutate(
+        across(ends_with("_pct"), ~ if_else(. > 50, 1, 0), .names = "{.col}_rec")
     )
+
+# 3.3 Etiquetar ----------------------------------------------------------------------------------------------------------------------------------------
+
+enusc <- reduce2(
+    unname(etiquetas_variables),
+    names(etiquetas_variables),
+    \(data, var, etiqueta) data %>%
+        mutate("{var}" := set_label(.data[[var]], label = etiqueta)),
+    .init = enusc
+)
+
+# Aplicar etiquetas valores
+enusc <- reduce2(
+    names(etiquetas_valores),
+    etiquetas_valores,
+    \(data, var, etiquetas) data %>% mutate("{var}" := set_labels(.data[[var]], labels = etiquetas)),
+    .init = enusc
+)
+
+# Check
+sjmisc::frq(enusc$emper_pct_rec)
+sjmisc::frq(enusc$emper_transporte_pct_rec)
+sjmisc::frq(enusc$emper_recreacion_pct_rec)
+
+sjmisc::frq(enusc$comper_pct_rec)
+sjmisc::frq(enusc$comper_vida_cotidiana_pct_rec)
+sjmisc::frq(enusc$comper_transporte_pct_rec)
 
 # 4. Guardar bbdd --------------------------------------------------------------------------------------------------------------------------------------
 
