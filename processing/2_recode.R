@@ -48,8 +48,8 @@ rec_vars <- list(
     emper_casa = c("emper_p_inseg_oscuro_2", "emper_p_inseg_dia_2"),
     perper_delito = list(
         "perper_p_expos_delito",
-        paste0("perper_p_delito_pronostico_", c(1, 3:4, 6, 8:11)),
-        paste0("perper_p_delito_pronostico_", c(2, 5, 7)),
+        paste0("perper_p_delito_pronostico_", c(1:4, 6, 9:11)),
+        paste0("perper_p_delito_pronostico_", c(5, 7:8)),
         "perper_p_expos_delito",
         paste0("perper_p_delito_pronostico_", c(77, 88, 99))
     ),
@@ -172,7 +172,44 @@ enusc <- reduce2(
     .init = enusc
 )
 
-# 3.4 Etiquetar --------------------------------------------------------------------------------------------------------------------------------------------
+# 3.4 Crear variables pct ---------------------------------------------------------------------------------------------------------------------------------
+
+enusc <- enusc %>%
+    create_var_pct(
+        success.cats = c(1, 2),
+        source.cols = starts_with("emper_p_inseg_lugares"),
+        name.var.pct = "emper_pct"
+    ) %>%
+    create_var_pct(
+        success.cats = c(1, 2),
+        source.cols = rec_vars[["emper_transporte"]],
+        name.var.pct = "emper_transporte_pct"
+    ) %>%
+    create_var_pct(
+        success.cats = c(1, 2),
+        source.cols = rec_vars[["emper_recreacion"]],
+        name.var.pct = "emper_recreacion_pct"
+    ) %>%
+    create_var_pct(
+        success.cats = 1,
+        source.cols = starts_with("comper_p_mod_actividades"),
+        name.var.pct = "comper_pct"
+    ) %>%
+    create_var_pct(
+        success.cats = 1,
+        source.cols = rec_vars[["comper_vida_cotidiana"]],
+        name.var.pct = "comper_vida_cotidiana_pct"
+    ) %>%
+    create_var_pct(
+        success.cats = 1,
+        source.cols = rec_vars[["comper_transporte"]],
+        name.var.pct = "comper_transporte_pct"
+    ) %>%
+    mutate(
+        across(ends_with("_pct"), ~ if_else(. > 50, 1, 0), .names = "{.col}_rec")
+    )
+
+# 3.5 Etiquetar --------------------------------------------------------------------------------------------------------------------------------------------
 
 # Aplicar etiquetas variables
 enusc <- reduce2(
@@ -191,7 +228,7 @@ enusc <- reduce2(
     .init = enusc
 )
 
-# 3.5 Generar metadata recode -----------------------------------------------------------------------------------------------------------------------------
+# 3.6 Generar metadata recode -----------------------------------------------------------------------------------------------------------------------------
 source("processing/helpers/gen_metadata_recode.R")
 
 # 4. Guardar bbdd ------------------------------------------------------------------------------------------------------------------------------------------

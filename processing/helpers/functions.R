@@ -202,3 +202,52 @@ gen_vct <- function(...) {
         select(...) %>%
         names()
 }
+
+# Crear variable de porcentaje de items con cierta categoría por total de validos
+create_var_pct <- function(
+    data,
+    id.col = rph_id,
+    success.cats, # Categorías de las variables fuente que se consideran "exito". P.ej: c(1, 2) -> 1 = Muy inseguro y 2 = Inseguro
+    source.cols, # Variables fuente para construir la variable nueva
+    name.var.pct, # Nombre de la variable nuueva
+    output = c("data", "details", "insumo", "all")) {
+    # Match args
+    output <- match.arg(output)
+
+    # Crear tabla long para hacer los calculos
+    details <- data %>%
+        select({{ id.col }}, {{ source.cols }}) %>%
+        pivot_longer(
+            cols = {{ source.cols }},
+            names_to = "variable",
+            values_to = "value"
+        ) %>%
+        group_by({{ id.col }}) %>%
+        mutate(
+            not_valid = sum(if_else(value == 85, 1, 0)),
+            n_valid = n() - not_valid,
+            n_success = sum(if_else(value %in% success.cats, 1, 0)),
+            "{name.var.pct}" := (n_success / n_valid) * 100
+        ) %>%
+        ungroup() %>%
+        select(-not_valid)
+
+    # Guardar variable en insumo wide
+    insumo <- details %>%
+        select({{ id.col }}, {{ name.var.pct }}) %>%
+        distinct({{ id.col }}, .keep_all = T)
+
+    # Añadir a data
+    data <- data %>% left_join(insumo)
+
+    # Retornar!
+    if (output == "data") {
+        return(data)
+    } else if (output == "details") {
+        return(details)
+    } else if (output == "insumo") {
+        return(insumo)
+    } else if (output == "all") {
+        return(list(data = data, details = details, insumo = insumo))
+    }
+}
