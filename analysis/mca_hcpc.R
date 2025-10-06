@@ -46,7 +46,7 @@ user <- tolower(Sys.info()["user"])
 rec_vars <- c(
     "emper_pct_rec", "emper_barrio", "emper_casa",
     "perper_delito",
-    "pergen_pais", "pergen_comuna", "pergen_barrio",
+    #"pergen_pais", "pergen_comuna", "pergen_barrio",
     "comper_pct_rec", "comper_gasto_medidas",
     "comgen_medidas_per", "comgen_medidas_com"
 )
