@@ -46,9 +46,17 @@ metadata_recode <- readxl::read_excel("output/metadata_recode.xlsx")
 
 # 3.1 Variables recodificadas ----------------------------------------------------------------------------------------------------------------------------
 
+vector_rec_vars <- c(
+    "emper_pct_rec", "emper_barrio", "emper_casa",
+    "perper_delito",
+    "pergen_pais", "pergen_comuna", "pergen_barrio",
+    "comper_pct_rec", "comper_gasto_medidas",
+    "comgen_medidas_per", "comgen_medidas_com"
+)
+
 # Ponderadas
 rec_vars <- map(
-    gen_vct(emper_transporte:comgen_medidas_com),
+    vector_rec_vars,
     ~ tab_frq1(var = !!sym(.x), verbose = FALSE)
 ) %>%
     list_rbind() %>%
@@ -56,7 +64,7 @@ rec_vars <- map(
 
 # Muestrales
 rec_vars_unw <- map(
-    gen_vct(emper_transporte:comgen_medidas_com),
+    vector_rec_vars,
     ~ tab_frq1(var = !!sym(.x), w = NULL, verbose = FALSE)
 ) %>%
     list_rbind()
@@ -81,7 +89,7 @@ sec_vars_unw <- map(
 # 3.3 Cruces variables recodificadas x variables secundarias --------------------------------------------------------------------------------------------
 
 df <- expand_grid(
-    rec_vars = gen_vct(emper_transporte:comgen_medidas_com),
+    rec_vars = vector_rec_vars,
     sec_vars = c("rph_sexo", "rph_nivel", "rph_edad", "rph_nse", "vp_dc", "vp_dv")
 )
 
@@ -152,8 +160,8 @@ CLUSTER_A_SACAR <- "clusters_4" # ! IMPORTANTE: Cluster para usar en las tablas
 # Crear y guardar tablas de recodificadas x cluster
 rec_clust_vars <- tab_var_clust(
     clust_var = CLUSTER_A_SACAR,
-    vector_vars = gen_vct(emper_transporte:comgen_medidas_com),
-    save = TRUE, 
+    vector_vars = vector_rec_vars,
+    save = TRUE,
     type_var_str = "rec"
 )
 
