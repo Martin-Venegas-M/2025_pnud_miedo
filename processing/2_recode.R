@@ -42,10 +42,15 @@ source("processing/helpers/labels.R")
 # 3.1 Crear insumo --------------------------------------------------------------------------------------------------------------------------------------
 #* NOTA: Este insumo contiene los vectores de variables que se utilizan en la creación de las variables recodificadas
 rec_vars <- list(
-    emper_transporte = paste0("emper_p_inseg_lugares_", 1:6),
-    emper_recreacion = paste0("emper_p_inseg_lugares_", c(7, 10, 12)),
-    emper_barrio = c("emper_p_inseg_oscuro_1", "emper_p_inseg_dia_1"),
-    emper_casa = c("emper_p_inseg_oscuro_2", "emper_p_inseg_dia_2"),
+    emper_espacio_publico_pct = c(
+        paste0("emper_p_inseg_lugares_", 1:6), # Transportes
+        paste0("emper_p_inseg_lugares_", c(7, 10)) # Recreación (restaurantes y malls)
+    ),
+    emper_barrio_pct = c(
+        c("emper_p_inseg_oscuro_1", "emper_p_inseg_dia_1"), # Caminando por el barrio día y noche
+        paste0("emper_p_inseg_lugares_", 12:13) # Plazas del barrio y negocios del barrio
+    ),
+    emper_casa_pct = c("emper_p_inseg_oscuro_2", "emper_p_inseg_dia_2"), # Estando en su casa día y noche
     perper_delito = list(
         "perper_p_expos_delito",
         paste0("perper_p_delito_pronostico_", c(1:4, 6, 9:11)),
@@ -56,20 +61,19 @@ rec_vars <- list(
     pergen_pais = c("pergen_p_aumento_pais"),
     pergen_comuna = c("pergen_p_aumento_com"),
     pergen_barrio = c("pergen_p_aumento_barrio"),
-    comper_vida_cotidiana = paste0("comper_p_mod_actividades_", c(1:2, 8)),
-    comper_transporte = paste0("comper_p_mod_actividades_", c(4:6, 13)),
+    comper_pct = paste0("comper_p_mod_actividades_", 1:13),
     comper_gasto_medidas = c("comper_costos_medidas"),
-    comgen_medidas_per = list(
-        "85" = "comgen_medidas_na",
-        "88" = "comgen_medidas_ns",
-        "99" = "comgen_medidas_nr",
-        "1" = paste0("comgen_medidas_", c("cerco", "rejas", "proteccion"))
+    comgen_per_pct = c(
+        "comgen_medidas_perro", "comgen_medidas_alarma_privada",
+        "comgen_medidas_camaras_vigilancia", "comgen_medidas_rejas",
+        "comgen_medidas_cerco", "comgen_medidas_proteccion",
+        "comgen_medidas_seguro", "comgen_medidas_foco"
     ),
-    comgen_medidas_com = list(
-        "85" = "comgen_vecinos_medidas_na",
-        "88" = "comgen_vecinos_medidas_ns",
-        "99" = "comgen_vecinos_medidas_nr",
-        "1" = paste0("comgen_vecinos_medidas_", c("vigilancia", "al_comunit", "coord_pol", "coord_mun", "televig"))
+    comgen_com_pct = c(
+        "comgen_vecinos_medidas_whatsapp", "comgen_vecinos_medidas_vigilancia",
+        "comgen_vecinos_medidas_al_comunit", "comgen_vecinos_medidas_coord_pol",
+        "comgen_vecinos_medidas_coord_mun", "comgen_vecinos_medidas_televig",
+        "comgen_vecinos_medidas_privad"
     )
 )
 
@@ -88,11 +92,22 @@ rec_vars <- list(
 
 # 3.2 Recodificar ----------------------------------------------------------------------------------------------------------------------------------------
 enusc <- enusc %>%
+    create_var_pct(
+        success.cats = c(1, 2),
+        source.cols = rec_vars[["emper_espacio_publico_pct"]],
+        name.var.pct = "emper_espacio_publico_pct"
+    ) %>%
+    create_var_pct(
+        success.cats = c(1, 2),
+        source.cols = rec_vars[["emper_barrio_pct"]],
+        name.var.pct = "emper_barrio_pct"
+    ) %>%
+    create_var_pct(
+        success.cats = c(1, 2),
+        source.cols = rec_vars[["emper_casa_pct"]],
+        name.var.pct = "emper_casa_pct"
+    ) %>%
     mutate(
-        emper_transporte = if_any(rec_vars[["emper_transporte"]], ~ . %in% c(1:2)),
-        emper_recreacion = if_any(rec_vars[["emper_recreacion"]], ~ . %in% c(1:2)),
-        emper_barrio = if_any(rec_vars[["emper_barrio"]], ~ . %in% c(1:2)),
-        emper_casa = if_any(rec_vars[["emper_casa"]], ~ . %in% c(1:2)),
         perper_delito = case_when(
             if_all(rec_vars[["perper_delito"]][[1]], ~ . == 2) ~ 1, # No cree que será victima de delito
             if_any(rec_vars[["perper_delito"]][[2]], ~ . == 1) ~ 2, # Cree que será victima de un delito no violento
@@ -103,33 +118,34 @@ enusc <- enusc %>%
         ),
         pergen_pais = if_all(rec_vars[["pergen_pais"]], ~ . == 1),
         pergen_comuna = if_all(rec_vars[["pergen_comuna"]], ~ . == 1),
-        pergen_barrio = if_all(rec_vars[["pergen_barrio"]], ~ . == 1),
-        comper_vida_cotidiana = if_any(rec_vars[["comper_vida_cotidiana"]], ~ . == 1),
-        comper_transporte = if_any(rec_vars[["comper_transporte"]], ~ . == 1),
+        pergen_barrio = if_all(rec_vars[["pergen_barrio"]], ~ . == 1)
+    ) %>%
+    create_var_pct(
+        success.cats = 1,
+        source.cols = rec_vars[["comper_pct"]],
+        name.var.pct = "comper_pct"
+    ) %>%
+    mutate(
         comper_gasto_medidas = case_when(
             if_all(rec_vars[["comper_gasto_medidas"]], ~ . %in% c(1:5)) ~ 1,
             if_all(rec_vars[["comper_gasto_medidas"]], ~ . == 85) ~ 0,
             if_all(rec_vars[["comper_gasto_medidas"]], ~ . == 88) ~ 88,
             if_all(rec_vars[["comper_gasto_medidas"]], ~ . == 99) ~ 99,
             TRUE ~ NA
-        ),
-        comgen_medidas_per = case_when(
-            # ! IMPORTANTE: se debe seguir la estrategia de lo más especifico a lo más general,
-            # ! por ello se parte recodificando los 85, 88 y 99 primero. Debido al manejo
-            # ! explicito de los 85, 88 y 99 el TRUE ~ 0 se puede leer como "No dispone de medidas".
-            if_all(rec_vars[["comgen_medidas_per"]][["85"]], ~ . == 1) ~ 85,
-            if_all(rec_vars[["comgen_medidas_per"]][["88"]], ~ . == 1) ~ 88,
-            if_all(rec_vars[["comgen_medidas_per"]][["99"]], ~ . == 1) ~ 99,
-            if_any(rec_vars[["comgen_medidas_per"]][["1"]], ~ . == 1) ~ 1,
-            TRUE ~ 0
-        ),
-        comgen_medidas_com = case_when(
-            if_all(rec_vars[["comgen_medidas_com"]][["85"]], ~ . == 1) ~ 85,
-            if_all(rec_vars[["comgen_medidas_com"]][["88"]], ~ . == 1) ~ 88,
-            if_all(rec_vars[["comgen_medidas_com"]][["99"]], ~ . == 1) ~ 99,
-            if_any(rec_vars[["comgen_medidas_com"]][["1"]], ~ . == 1) ~ 1,
-            TRUE ~ 0
         )
+    ) %>%
+    create_var_pct(
+        success.cats = 1,
+        source.cols = rec_vars[["comgen_per_pct"]],
+        name.var.pct = "comgen_per_pct"
+    ) %>%
+    create_var_pct(
+        success.cats = 1,
+        source.cols = rec_vars[["comgen_com_pct"]],
+        name.var.pct = "comgen_com_pct"
+    ) %>%
+    mutate(
+        across(ends_with("_pct"), ~ if_else(. > 50, 1, 0), .names = "{.col}_rec")
     ) %>%
     mutate(
         across(where(is.logical), ~ as.numeric(.)) # Pasar de TRUE/FALSE a 1/0
@@ -142,19 +158,23 @@ enusc <- enusc %>%
 #* Sin embargo, para estas variables preferí mantener la estrategia por consistencia, de tal manera que el código de recodificación no incluya
 #* variables del cuestionario y solo se haga referencia al insumo.
 
-# ! IMPORTANTE La nota anterior también aplica para las categorías 1 y 4 de la variable perper_delito y también para las categorías
-# ! 85, 88 y 99 de comgen_medidas_per y comgen_medidas_com.
+# ! IMPORTANTE La nota anterior también aplica para las categorías 1 y 4 de la variable perper_delito.
 
 # 3.3 Imputar 85, 88 y 99 --------------------------------------------------------------------------------------------------------------------------------
 
 # Excluir variables de la imputación
-excluir <- c("perper_delito", "comper_gasto_medidas", "comgen_medidas_per", "comgen_medidas_com")
+excluir <- c("perper_delito", "comper_gasto_medidas")
 rec_vars_torec <- rec_vars[!names(rec_vars) %in% excluir]
+
+# Agregar sufijjo "_rec" a los nombres de las variables
+names(rec_vars_torec) <- if_else(
+    str_detect(names(rec_vars_torec), "_pct$"),
+    paste0(names(rec_vars_torec), "_rec"),
+    names(rec_vars_torec)
+)
 
 #* NOTAS:
 #* perper_delito tiene su propio manejo explicito de los NS/NR, no es necesario incluirlo en esta imputación.
-#* comper_gasto_medidas tiene un sentido sustantivo para el 85, por lo que el NS/NR se manejó explicitamente en la recodificación
-#* comgen_medidas_per y comgen_medidas_com también se excluyen ya que su manejo de 85 y NS/NR se realizó en la recodificación
 
 # Imputar!
 enusc <- reduce2(
@@ -172,44 +192,7 @@ enusc <- reduce2(
     .init = enusc
 )
 
-# 3.4 Crear variables pct ---------------------------------------------------------------------------------------------------------------------------------
-
-enusc <- enusc %>%
-    create_var_pct(
-        success.cats = c(1, 2),
-        source.cols = starts_with("emper_p_inseg_lugares"),
-        name.var.pct = "emper_pct"
-    ) %>%
-    create_var_pct(
-        success.cats = c(1, 2),
-        source.cols = rec_vars[["emper_transporte"]],
-        name.var.pct = "emper_transporte_pct"
-    ) %>%
-    create_var_pct(
-        success.cats = c(1, 2),
-        source.cols = rec_vars[["emper_recreacion"]],
-        name.var.pct = "emper_recreacion_pct"
-    ) %>%
-    create_var_pct(
-        success.cats = 1,
-        source.cols = starts_with("comper_p_mod_actividades"),
-        name.var.pct = "comper_pct"
-    ) %>%
-    create_var_pct(
-        success.cats = 1,
-        source.cols = rec_vars[["comper_vida_cotidiana"]],
-        name.var.pct = "comper_vida_cotidiana_pct"
-    ) %>%
-    create_var_pct(
-        success.cats = 1,
-        source.cols = rec_vars[["comper_transporte"]],
-        name.var.pct = "comper_transporte_pct"
-    ) %>%
-    mutate(
-        across(ends_with("_pct"), ~ if_else(. > 50, 1, 0), .names = "{.col}_rec")
-    )
-
-# 3.5 Etiquetar --------------------------------------------------------------------------------------------------------------------------------------------
+# 3.4 Etiquetar --------------------------------------------------------------------------------------------------------------------------------------------
 
 # Aplicar etiquetas variables
 enusc <- reduce2(
@@ -228,7 +211,7 @@ enusc <- reduce2(
     .init = enusc
 )
 
-# 3.6 Generar metadata recode -----------------------------------------------------------------------------------------------------------------------------
+# 3.5 Generar metadata recode -----------------------------------------------------------------------------------------------------------------------------
 source("processing/helpers/gen_metadata_recode.R")
 
 # 4. Guardar bbdd ------------------------------------------------------------------------------------------------------------------------------------------
