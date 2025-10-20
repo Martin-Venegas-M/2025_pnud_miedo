@@ -82,12 +82,6 @@ rec_vars <- list(
 #* el elemento 1 ( rec_vars[["perper_delito"]][[1]] ) corresponde a perper_p_expos_delito. Esta es la variable que permitirá
 #* generar la categoría "1. No cree que será victima de delito", cuando perper_p_expos_delito == 2.
 
-#* Las variables de comgen_medidas_per y comgen_medidas_com siguen una lógica similar a perper_delito, en tanto los elementos
-#* rec_vars[["comgen_medidas_per"]] y rec_vars[["comgen_medidas_com"]] corresponden a sub-listas en vez de vectores. Sin embargo,
-#* aqui hay una diferencia más sustantiva que técnica:
-#* - En perper_delito se creaba una variable resumida con 3 categorías y ADEMÁS se manejaban los 85 y NSNR creando otras categorías (4 y 5)
-#* - En comgen_medidas_per y comgen_medidas_com se aplica esta estrategia solo para manejar explicitamente los 85 y NSNR
-
 # 3.2 Recodificar ----------------------------------------------------------------------------------------------------------------------------------------
 enusc <- enusc %>%
     create_var_pct(
@@ -144,15 +138,18 @@ enusc <- enusc %>%
     )
 
 # ! AJUSTES!
+vec_comgen_per <- c("comgen_medidas_na", "comgen_medidas_ns", "comgen_medidas_nr")
+vec_comgen_com <- c("comgen_vecinos_medidas_na", "comgen_vecinos_medidas_ns", "comgen_vecinos_medidas_nr")
+
 enusc <- enusc %>%
     mutate(
-        across(where(is.logical), ~ as.numeric(.)), # Pasar de TRUE/FALSE a 1/0
-        across(ends_with("_pct"), ~ if_else(
-            if_any(c("comgen_medidas_na", "comgen_medidas_ns", "comgen_medidas_nr"), ~ . == 1),
-            NA,
-            .
-        )),
-        across(ends_with("_pct"), ~ if_else(. > 50, 1, 0), .names = "{.col}_rec"), # ! IMPORTANTE: CREAR VARIABLE DICOTOMICA
+        # Pasar de TRUE/FALSE a 1/0
+        across(where(is.logical), ~ as.numeric(.)),
+        # Pasar a NA las variables de comgen cuando se selecciona la columna de No aplica, No sabe o No responde
+        comgen_per_pct = if_else(if_any(all_of(vec_comgen_per), ~ . == 1), NA, comgen_per_pct),
+        comgen_com_pct = if_else(if_any(all_of(vec_comgen_com), ~ . == 1), NA, comgen_com_pct),
+        # ! IMPORTANTE: CREAR VARIABLE DICOTOMICA, ESTA ES LA QUE USAMOS EN MCA
+        across(ends_with("_pct"), ~ if_else(. > 50, 1, 0), .names = "{.col}_rec"),
         # Manejo explicito de No aplica, No sabe y No responde para variables de comgen (es necesario ya que son preguntas de opción múltiple)
         comgen_per_pct_rec = case_when(
             comgen_medidas_na == 1 ~ 85,
@@ -161,9 +158,9 @@ enusc <- enusc %>%
             TRUE ~ comgen_per_pct_rec
         ),
         comgen_com_pct_rec = case_when(
-            comgen_medidas_na == 1 ~ 85,
-            comgen_medidas_ns == 1 ~ 88,
-            comgen_medidas_nr == 1 ~ 99,
+            comgen_vecinos_medidas_na == 1 ~ 85,
+            comgen_vecinos_medidas_ns == 1 ~ 88,
+            comgen_vecinos_medidas_nr == 1 ~ 99,
             TRUE ~ comgen_com_pct_rec
         )
     )
