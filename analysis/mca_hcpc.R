@@ -44,11 +44,11 @@ user <- tolower(Sys.info()["user"])
 
 # Vector de variables a incluir
 rec_vars <- c(
-    "emper_pct_rec", "emper_barrio", "emper_casa",
+    "emper_espacio_publico_pct_rec", "emper_barrio_pct_rec", "emper_casa_pct_rec",
     "perper_delito",
     #"pergen_pais", "pergen_comuna", "pergen_barrio",
     "comper_pct_rec", "comper_gasto_medidas",
-    "comgen_medidas_per", "comgen_medidas_com"
+    "comgen_per_pct_rec", "comgen_com_pct_rec"
 )
 
 # Data para prueba
