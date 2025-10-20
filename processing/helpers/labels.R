@@ -1,7 +1,7 @@
 # Crear etiquetas de variables
 etiquetas_variables <- c(
-    "Inseguridad en Espacio público"                             = "emper_espacio_publico_pct",
-    "Inseguridad en Espacio público (rec)"                       = "emper_espacio_publico_pct_rec",
+    "Inseguridad en Espacio público"                             = "emper_ep_pct",
+    "Inseguridad en Espacio público (rec)"                       = "emper_ep_pct_rec",
     "Inseguridad en Barrio"                                      = "emper_barrio_pct",
     "Inseguridad en Barrio (rec)"                                = "emper_barrio_pct_rec",
     "Inseguridad en Casa"                                        = "emper_casa_pct",
@@ -20,7 +20,7 @@ etiquetas_variables <- c(
 )
 
 etiquetas_valores <- list(
-    "emper_espacio_publico_pct_rec" = c(
+    "emper_ep_pct_rec" = c(
         "Alta inseguridad en espacio publico" = 1,
         "Baja inseguridad en espacio publico" = 0,
         "No aplica" = 85,

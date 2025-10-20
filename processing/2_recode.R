@@ -43,7 +43,7 @@ source("processing/helpers/labels.R")
 # 3.1 Crear insumo --------------------------------------------------------------------------------------------------------------------------------------
 #* NOTA: Este insumo contiene los vectores de variables que se utilizan en la creación de las variables recodificadas
 rec_vars <- list(
-    emper_espacio_publico_pct = c(paste0("emper_p_inseg_lugares_", 1:11)), # Todos los lugares menos plazas del barrio y negocios del barrio
+    emper_ep_pct = c(paste0("emper_p_inseg_lugares_", 1:11)), # Todos los lugares menos plazas del barrio y negocios del barrio
     emper_barrio_pct = c(
         c("emper_p_inseg_oscuro_1", "emper_p_inseg_dia_1"), # Caminando por el barrio día y noche
         paste0("emper_p_inseg_lugares_", 12:13) # Plazas del barrio y negocios del barrio
@@ -86,8 +86,8 @@ rec_vars <- list(
 enusc <- enusc %>%
     create_var_pct(
         success.cats = c(1, 2),
-        source.cols = rec_vars[["emper_espacio_publico_pct"]],
-        name.var.pct = "emper_espacio_publico_pct"
+        source.cols = rec_vars[["emper_ep_pct"]],
+        name.var.pct = "emper_ep_pct"
     ) %>%
     create_var_pct(
         success.cats = c(1, 2),
