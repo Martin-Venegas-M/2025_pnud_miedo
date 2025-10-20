@@ -47,8 +47,9 @@ rec_vars <- c(
     "emper_ep_pct_rec", "emper_barrio_pct_rec", "emper_casa_pct_rec",
     "perper_delito",
     #"pergen_pais", "pergen_comuna", "pergen_barrio",
-    "comper_pct_rec", "comper_gasto_medidas",
-    "comgen_per_pct_rec", "comgen_com_pct_rec"
+    "comper_pct_rec", #"comper_gasto_medidas",
+    #"comgen_per_pct_rec", 
+    "comgen_com_pct_rec"
 )
 
 # Data para prueba
