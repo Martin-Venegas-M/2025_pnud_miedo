@@ -97,6 +97,23 @@ enusc <- reduce(
     .init = enusc
 )
 
+# 3.4 Recodificar variables sociodemográficas ------------------------------------------------------------------------------------------------------------
+enusc <- enusc %>%
+    mutate(
+        rph_nivel_rec = case_when(
+            rph_nivel %in% 0:1 ~ 1,
+            rph_nivel == 2 ~ 2,
+            rph_nivel == 3 ~ 3,
+            rph_nivel == 96 ~ 96,
+            rph_nivel == 99 ~ 99
+        ),
+        rph_edad_rec = case_when(
+            rph_edad %in% 0:2 ~ 1,
+            rph_edad %in% 3:5 ~ 2,
+            rph_edad %in% 6:7 ~ 3
+        )
+    )
+
 # 3.4 Etiquetar -------------------------------------------------------------------------------------------------------------------------------------------
 
 etiquetas_variables <- c(
@@ -107,7 +124,9 @@ etiquetas_variables <- c(
     "Se informa por experiencia personal" = "info_exp_personal",
     "Se informa por otras personas" = "info_otras_personas",
     "Se informa por RRSS" = "info_rrss",
-    "Se informa por prensa" = "info_prensa"
+    "Se informa por prensa" = "info_prensa",
+    "Nivel educacional (rec)" = "rph_nivel_rec",
+    "Edad (rec)" = "rph_edad_rec"
 )
 
 etiquetas_valores <- list(
@@ -144,6 +163,18 @@ etiquetas_valores <- list(
         "No se informa por prensa" = 0,
         "No sabe" = 88,
         "No responde" = 99
+    ),
+    "rph_nivel_rec" = c(
+        "Educación básica o menos" = 1,
+        "Educación secundaria" = 2,
+        "Educación terciaria" = 3,
+        "Sin dato" = 96,
+        "Nivel ignorado" = 99
+    ),
+    "rph_edad_rec" = c(
+        "0 a 29 años" = 1,
+        "30 a 59 años" = 2,
+        "60 años o más" = 3
     )
 )
 
