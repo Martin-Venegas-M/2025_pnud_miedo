@@ -47,14 +47,13 @@ metadata_recode <- readxl::read_excel("output/metadata_recode.xlsx")
 # 3.1 Variables recodificadas ----------------------------------------------------------------------------------------------------------------------------
 
 vector_rec_vars <- c(
-    "emper_pct_rec", "emper_barrio", "emper_casa",
+    "emper_ep_pct_rec", "emper_barrio_pct_rec", "emper_casa_pct_rec",
     "perper_delito",
-    "pergen_pais", "pergen_comuna", "pergen_barrio",
+    # "pergen_pais", "pergen_comuna", "pergen_barrio",
     "comper_pct_rec", "comper_gasto_medidas",
-    "comgen_medidas_per", "comgen_medidas_com"
+    "comgen_per_pct_rec", "comgen_com_pct_rec"
 )
 
-# Ponderadas
 rec_vars <- map(
     vector_rec_vars,
     ~ tab_frq1(var = !!sym(.x), verbose = FALSE)
@@ -62,45 +61,36 @@ rec_vars <- map(
     list_rbind() %>%
     pre_proc_excel(type = "tab_frq1")
 
-# Muestrales
-rec_vars_unw <- map(
-    vector_rec_vars,
-    ~ tab_frq1(var = !!sym(.x), w = NULL, verbose = FALSE)
-) %>%
-    list_rbind()
-
 # 3.2 Variables secundarias -----------------------------------------------------------------------------------------------------------------------------
 
-# Ponderadas
+vector_sec_vars <- c(
+    "rph_sexo", "rph_nivel_rec", "rph_edad_rec", "rph_nse",
+    "vp_dc", "vp_dv",
+    "desordenes_ind_rec", "incivilidades_ind_rec",
+    "info_exp_personal", "info_otras_personas", "info_rrss", "info_prensa"
+)
+
 sec_vars <- map(
-    c("rph_sexo", "rph_nivel", "rph_edad", "rph_nse", "vp_dc", "vp_dv"),
+    vector_sec_vars,
     ~ tab_frq1(var = !!sym(.x), verbose = TRUE, sep_verbose = FALSE)
 ) %>%
     list_rbind() %>%
     pre_proc_excel()
 
-# Muestrales
-sec_vars_unw <- map(
-    c("rph_sexo", "rph_nivel", "rph_edad", "rph_nse", "vp_dc", "vp_dv"),
-    ~ tab_frq1(var = !!sym(.x), w = NULL, verbose = TRUE, sep_verbose = FALSE)
-) %>%
-    list_rbind()
-
 # 3.3 Cruces variables recodificadas x variables secundarias --------------------------------------------------------------------------------------------
 
 df <- expand_grid(
     rec_vars = vector_rec_vars,
-    sec_vars = c("rph_sexo", "rph_nivel", "rph_edad", "rph_nse", "vp_dc", "vp_dv")
+    sec_vars = vector_sec_vars
 )
 
-# Ponderadas
 rec_sec_vars <- map2(
     df$rec_vars,
     df$sec_vars,
     ~ tab_frq2(var = !!sym(.x), grp = TRUE, grp_var = !!sym(.y), verbose = FALSE, vartype = NULL),
     .progress = TRUE
 ) %>%
-    set_names(str_trunc(glue("{df$rec_vars} x {str_replace(df$sec_vars, 'rph_', '')}"), 30))
+    set_names(str_trunc(glue("{str_replace(df$rec_vars, '_pct_rec', '')}-{str_replace(df$sec_vars, 'rph_', '')}"), 30))
 
 # 3.4 Cruces variables x cluster ----------------------------------------------------------------------------------------------------------
 
@@ -132,7 +122,7 @@ tab_var_clust <- function(clust_var, vector_vars, save = FALSE, type_var_str) {
         ),
         .progress = TRUE
     ) %>%
-        set_names(str_trunc(glue("{df$vars} x {str_replace(df$clust, clust_var, short_clust_var)}"), 30))
+        set_names(str_trunc(glue("{df$vars}-{str_replace(df$clust, clust_var, short_clust_var)}"), 30))
 
     # Guardar si es necesario
     if (save) {
@@ -168,7 +158,7 @@ rec_clust_vars <- tab_var_clust(
 # Crear y guardar tablas de secundarias x cluster
 sec_clust_vars <- tab_var_clust(
     clust_var = CLUSTER_A_SACAR,
-    vector_vars = c("rph_sexo", "rph_nivel", "rph_edad", "rph_nse", "vp_dc", "vp_dv"),
+    vector_vars = vector_sec_vars,
     save = TRUE,
     type_var_str = "sec"
 )
