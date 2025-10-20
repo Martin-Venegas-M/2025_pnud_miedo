@@ -29,9 +29,12 @@ load("output/models/results_mca_hcpc.RData")
 
 # 3. Ejecutar código -------------------------------------------------------------------------------------------------------------------------------------
 
-# Add nclust variable to the dataset
+# 3.1 Añadir variables de cluster ------------------------------------------------------------------------------------------------------------------------
+
+# Añadir variables de cluster
 add_clust <- function(data, nclust) {
-    df_clust <- results_all[[glue("class{nclust}")]]$data %>% select(all_of(c("rph_id", glue("clusters_{nclust}"))))
+    df_clust <- results_all[[glue("class{nclust}")]]$data %>%
+        select(all_of(c("rph_id", glue("clusters_{nclust}"))))
 
     data <- data %>%
         left_join(df_clust) %>%
@@ -40,10 +43,124 @@ add_clust <- function(data, nclust) {
     return(data)
 }
 
-# Iterate function
+# Iterar!
 enusc <- reduce(
     2:6,
     \(data, nclust) add_clust(data, nclust),
+    .init = enusc
+)
+
+# 3.2 Crear indices de desordenes e incivilidades --------------------------------------------------------------------------------------------------------
+
+# Crear indice desordenes
+enusc <- enusc %>%
+    mutate(
+        across(starts_with("p_desordenes_"), ~ if_else(. %in% c(88, 99), NA, .), .names = "temp_{.col}"),
+        desordenes_ind = rowSums(across(starts_with("temp_")), na.rm = TRUE),
+        desordenes_ind_rec = ntile(desordenes_ind, 3)
+    ) %>%
+    select(-starts_with("temp_"))
+
+# Crear indice incivilidades
+enusc <- enusc %>%
+    mutate(
+        across(starts_with("p_incivilidades_"), ~ if_else(. %in% c(88, 99), NA, .), .names = "temp_{.col}"),
+        incivilidades_ind = rowSums(across(starts_with("temp_")), na.rm = TRUE),
+        incivilidades_ind_rec = ntile(incivilidades_ind, 3)
+    ) %>%
+    select(-starts_with("temp_"))
+
+# 3.3 Crear variables de información -----------------------------------------------------------------------------------------------------------------------
+vec_info <- c("p_fuente_info_barrio_1", "p_fuente_info_com_1", "p_fuente_info_pais_1") # Variables fuente
+
+# Crear!
+enusc <- enusc %>%
+    mutate(
+        info_exp_personal = if_else(if_any(all_of(vec_info), ~ . == 1), 1, 0),
+        info_otras_personas = if_else(if_any(all_of(vec_info), ~ . %in% c(2:3)), 1, 0),
+        info_rrss = if_else(if_any(all_of(vec_info), ~ . == 4), 1, 0),
+        info_prensa = if_else(if_any(all_of(vec_info), ~ . %in% c(5:9)), 1, 0)
+    )
+
+# Manejo explicito de Otros, No sabe y no responde!
+enusc <- reduce(
+    c("info_exp_personal", "info_otras_personas", "info_rrss", "info_prensa"),
+    \(data, var) {
+        data %>%
+            mutate("{var}" := case_when(
+                # if_all(all_of(vec_info), ~ . == 77) ~ 77, #! El otro quedará dentro de la categoría 0!
+                if_all(all_of(vec_info), ~ . == 88) ~ 88,
+                if_all(all_of(vec_info), ~ . == 99) ~ 99,
+                TRUE ~ .data[[var]]
+            ))
+    },
+    .init = enusc
+)
+
+# 3.4 Etiquetar -------------------------------------------------------------------------------------------------------------------------------------------
+
+etiquetas_variables <- c(
+    "Indice de desordenes" = "desordenes_ind",
+    "Indice de desordenes (rec)" = "desordenes_ind_rec",
+    "Indice de incivilidades" = "incivilidades_ind",
+    "Indice de incivilidades (rec)" = "incivilidades_ind_rec",
+    "Se informa por experiencia personal" = "info_exp_personal",
+    "Se informa por otras personas" = "info_otras_personas",
+    "Se informa por RRSS" = "info_rrss",
+    "Se informa por prensa" = "info_prensa"
+)
+
+etiquetas_valores <- list(
+    "desordenes_ind_rec" = c(
+        "Tercil 1 en desordenes" = 1,
+        "Tercil 2 en desordenes" = 2,
+        "Tercil 3 en desordenes" = 3
+    ),
+    "incivilidades_ind_rec" = c(
+        "Tercil 1 en incivilidades" = 1,
+        "Tercil 2 en incivilidades" = 2,
+        "Tercil 3 en incivilidades" = 3
+    ),
+    "info_exp_personal" = c(
+        "Se informa por experiencia personal" = 1,
+        "No se informa por experiencia personal" = 0,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
+    "info_otras_personas" = c(
+        "Se informa por otras personas" = 1,
+        "No se informa por otras personas" = 0,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
+    "info_rrss" = c(
+        "Se informa por RRSS" = 1,
+        "No se informa por RRSS" = 0,
+        "No sabe" = 88,
+        "No responde" = 99
+    ),
+    "info_prensa" = c(
+        "Se informa por prensa" = 1,
+        "No se informa por prensa" = 0,
+        "No sabe" = 88,
+        "No responde" = 99
+    )
+)
+
+# Aplicar etiquetas variables
+enusc <- reduce2(
+    unname(etiquetas_variables),
+    names(etiquetas_variables),
+    \(data, var, etiqueta) data %>%
+        mutate("{var}" := set_label(.data[[var]], label = etiqueta)),
+    .init = enusc
+)
+
+# Aplicar etiquetas valores
+enusc <- reduce2(
+    names(etiquetas_valores),
+    etiquetas_valores,
+    \(data, var, etiquetas) data %>% mutate("{var}" := set_labels(.data[[var]], labels = etiquetas)),
     .init = enusc
 )
 
