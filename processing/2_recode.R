@@ -4,7 +4,7 @@
 # Institución: PNUD
 # Responsable: Consultor técnico - MVM
 # Resumen ejecutivo: Este script contiene el código para la recodificación de las variables principales
-# Fecha: 14 de septiembre de 2025
+# Fecha: 20 de octubre de 2025
 #******************************************************************************************************************************************************
 
 rm(list = ls())
@@ -20,7 +20,8 @@ pacman::p_load(
     sjlabelled,
     sjmisc,
     sjPlot,
-    glue
+    glue,
+    openxlsx
 )
 
 # 2. Cargar datos y funciones ----------------------------------------------------------------------------------------------------------------------------
@@ -42,10 +43,7 @@ source("processing/helpers/labels.R")
 # 3.1 Crear insumo --------------------------------------------------------------------------------------------------------------------------------------
 #* NOTA: Este insumo contiene los vectores de variables que se utilizan en la creación de las variables recodificadas
 rec_vars <- list(
-    emper_espacio_publico_pct = c(
-        paste0("emper_p_inseg_lugares_", 1:6), # Transportes
-        paste0("emper_p_inseg_lugares_", c(7, 10)) # Recreación (restaurantes y malls)
-    ),
+    emper_espacio_publico_pct = c(paste0("emper_p_inseg_lugares_", 1:11)), # Todos los lugares menos plazas del barrio y negocios del barrio
     emper_barrio_pct = c(
         c("emper_p_inseg_oscuro_1", "emper_p_inseg_dia_1"), # Caminando por el barrio día y noche
         paste0("emper_p_inseg_lugares_", 12:13) # Plazas del barrio y negocios del barrio
@@ -68,13 +66,13 @@ rec_vars <- list(
         "comgen_medidas_camaras_vigilancia", "comgen_medidas_rejas",
         "comgen_medidas_cerco", "comgen_medidas_proteccion",
         "comgen_medidas_seguro", "comgen_medidas_foco"
-    ),
+    ), # Todas las medidas personales
     comgen_com_pct = c(
         "comgen_vecinos_medidas_whatsapp", "comgen_vecinos_medidas_vigilancia",
         "comgen_vecinos_medidas_al_comunit", "comgen_vecinos_medidas_coord_pol",
         "comgen_vecinos_medidas_coord_mun", "comgen_vecinos_medidas_televig",
         "comgen_vecinos_medidas_privad"
-    )
+    ) # Todas las medidas comunitarias
 )
 
 #* NOTAS TÉCNICAS:
@@ -143,22 +141,32 @@ enusc <- enusc %>%
         success.cats = 1,
         source.cols = rec_vars[["comgen_com_pct"]],
         name.var.pct = "comgen_com_pct"
-    ) %>%
-    mutate(
-        across(ends_with("_pct"), ~ if_else(. > 50, 1, 0), .names = "{.col}_rec")
-    ) %>%
-    mutate(
-        across(where(is.logical), ~ as.numeric(.)) # Pasar de TRUE/FALSE a 1/0
     )
 
-#* NOTA TÉCNICA:
-#* Para las variables de pergen_pais, pergen_comuna, pergen_comuna y comper_gasto_medidas no es estrictamente necesario utilizar
-#* la estrategia de if_all() + rec_vars[[]], ya que para la creación de estas variables recodificadas se utiliza solo una variable
-#* del cuestionario (en vez de un conjunto de variables). Por ejemplo, para crear comper_gastos_medidas solo se utiliza comper_costos_medidas.
-#* Sin embargo, para estas variables preferí mantener la estrategia por consistencia, de tal manera que el código de recodificación no incluya
-#* variables del cuestionario y solo se haga referencia al insumo.
-
-# ! IMPORTANTE La nota anterior también aplica para las categorías 1 y 4 de la variable perper_delito.
+# ! AJUSTES!
+enusc <- enusc %>%
+    mutate(
+        across(where(is.logical), ~ as.numeric(.)), # Pasar de TRUE/FALSE a 1/0
+        across(ends_with("_pct"), ~ if_else(
+            if_any(c("comgen_medidas_na", "comgen_medidas_ns", "comgen_medidas_nr"), ~ . == 1),
+            NA,
+            .
+        )),
+        across(ends_with("_pct"), ~ if_else(. > 50, 1, 0), .names = "{.col}_rec"), # ! IMPORTANTE: CREAR VARIABLE DICOTOMICA
+        # Manejo explicito de No aplica, No sabe y No responde para variables de comgen (es necesario ya que son preguntas de opción múltiple)
+        comgen_per_pct_rec = case_when(
+            comgen_medidas_na == 1 ~ 85,
+            comgen_medidas_ns == 1 ~ 88,
+            comgen_medidas_nr == 1 ~ 99,
+            TRUE ~ comgen_per_pct_rec
+        ),
+        comgen_com_pct_rec = case_when(
+            comgen_medidas_na == 1 ~ 85,
+            comgen_medidas_ns == 1 ~ 88,
+            comgen_medidas_nr == 1 ~ 99,
+            TRUE ~ comgen_com_pct_rec
+        )
+    )
 
 # 3.3 Imputar 85, 88 y 99 --------------------------------------------------------------------------------------------------------------------------------
 
@@ -172,9 +180,6 @@ names(rec_vars_torec) <- if_else(
     paste0(names(rec_vars_torec), "_rec"),
     names(rec_vars_torec)
 )
-
-#* NOTAS:
-#* perper_delito tiene su propio manejo explicito de los NS/NR, no es necesario incluirlo en esta imputación.
 
 # Imputar!
 enusc <- reduce2(
@@ -230,4 +235,8 @@ enusc_na <- reduce(
 saveRDS(enusc_na, "input/data/proc/enusc_na_2_recode.RDS")
 
 # Guardar metadata
-writexl::write_xlsx(metadata_recode, "output/metadata_recode.xlsx")
+saveWorkbook(
+    format_tab_excel(metadata_recode, wb = createWorkbook(), sheet = "Metadata", var_col = "variable_recodificada", color_header = "#fcd5b4", sep_style = "dashed"),
+    "output/metadata_recode.xlsx",
+    overwrite = TRUE
+)

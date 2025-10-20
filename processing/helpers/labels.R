@@ -1,7 +1,7 @@
 # Crear etiquetas de variables
 etiquetas_variables <- c(
-    "Inseguridad en Espacio público"                             = "emper_espacio_publico_pct"
-    "Inseguridad en Espacio público (rec)"                       = "emper_espacio_publico_pct_rec"
+    "Inseguridad en Espacio público"                             = "emper_espacio_publico_pct",
+    "Inseguridad en Espacio público (rec)"                       = "emper_espacio_publico_pct_rec",
     "Inseguridad en Barrio"                                      = "emper_barrio_pct",
     "Inseguridad en Barrio (rec)"                                = "emper_barrio_pct_rec",
     "Inseguridad en Casa"                                        = "emper_casa_pct",
@@ -21,22 +21,22 @@ etiquetas_variables <- c(
 
 etiquetas_valores <- list(
     "emper_espacio_publico_pct_rec" = c(
-        "Arriba del 50% de inseguridad en espacio publico" = 1,
-        "Igual o menor al 50% de inseguridad en espacio publico" = 0,
+        "Alta inseguridad en espacio publico" = 1,
+        "Baja inseguridad en espacio publico" = 0,
         "No aplica" = 85,
         "No sabe" = 88,
         "No responde" = 99
     ),
     "emper_barrio_pct_rec" = c(
-        "Arriba del 50% de inseguridad en el barrio" = 1,
-        "Igual o menor al 50% de inseguridad en el barrio" = 0,
+        "Alta inseguridad en el barrio" = 1,
+        "Baja inseguridad en el barrio" = 0,
         "No aplica" = 85,
         "No sabe" = 88,
         "No responde" = 99
     ),
     "emper_casa_pct_rec" = c(
-        "Arriba del 50% de inseguridad en la casa" = 1,
-        "Igual o menor al 50% de inseguridad en la casa" = 0,
+        "Alta inseguridad en la casa" = 1,
+        "Baja de inseguridad en la casa" = 0,
         "No aplica" = 85,
         "No sabe" = 88,
         "No responde" = 99
@@ -66,9 +66,9 @@ etiquetas_valores <- list(
         "No sabe" = 88,
         "No responde" = 99
     ),
-    "comper_" = c(
-        "Arriba del 50% de inseguridad en la casa" = 1,
-        "Igual o menor al 50% de inseguridad en la casa" = 0,
+    "comper_pct_rec" = c(
+        "Alta modificación de prácticas" = 1,
+        "Baja modificación de prácticas" = 0,
         "No aplica" = 85,
         "No sabe" = 88,
         "No responde" = 99
@@ -79,16 +79,16 @@ etiquetas_valores <- list(
         "No sabe" = 88,
         "No responde" = 99
     ),
-    "comgen_medidas_per" = c(
-        "Dispone de medidas personales" = 1,
-        "No dispone de medidas personales" = 0,
+    "comgen_per_pct_rec" = c(
+        "Alta disposición de medidas personales" = 1,
+        "Baja disposición de medidas personales" = 0,
         "No aplica" = 85,
         "No sabe" = 88,
         "No responde" = 99
     ),
-    "comgen_medidas_com" = c(
-        "Dispone de medidas comunitarias" = 1,
-        "No dispone de medidas comunitarias" = 0,
+    "comgen_com_pct_rec" = c(
+        "Alta disposición de medidas comunitarias" = 1,
+        "Baja disposición de medidas comunitarias" = 0,
         "No aplica" = 85,
         "No sabe" = 88,
         "No responde" = 99
