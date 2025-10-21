@@ -40,14 +40,18 @@ source("processing/helpers/labels.R")
 
 # 3. Ejecutar código --------------------------------------------------------------------------------------------------------------------------------------
 
+## Replicar
+# Sacar 2 ítemes de barrio de otra escala
+# incluir gasto?
+
+# sacando gasto
+
+
 # 3.1 Crear insumo --------------------------------------------------------------------------------------------------------------------------------------
 #* NOTA: Este insumo contiene los vectores de variables que se utilizan en la creación de las variables recodificadas
 rec_vars <- list(
     emper_ep_pct = c(paste0("emper_p_inseg_lugares_", 1:11)), # Todos los lugares menos plazas del barrio y negocios del barrio
-    emper_barrio_pct = c(
-        c("emper_p_inseg_oscuro_1", "emper_p_inseg_dia_1"), # Caminando por el barrio día y noche
-        paste0("emper_p_inseg_lugares_", 12:13) # Plazas del barrio y negocios del barrio
-    ),
+    emper_barrio_pct = c("emper_p_inseg_oscuro_1", "emper_p_inseg_dia_1"), # Caminando por el barrio día y noche
     emper_casa_pct = c("emper_p_inseg_oscuro_2", "emper_p_inseg_dia_2"), # Estando en su casa día y noche
     perper_delito = list(
         "perper_p_expos_delito",
@@ -60,7 +64,7 @@ rec_vars <- list(
     pergen_comuna = c("pergen_p_aumento_com"),
     pergen_barrio = c("pergen_p_aumento_barrio"),
     comper_pct = paste0("comper_p_mod_actividades_", 1:13),
-    comper_gasto_medidas = c("comper_costos_medidas"),
+    comper_gasto = c("comper_costos_medidas"),
     comgen_per_pct = c(
         "comgen_medidas_perro", "comgen_medidas_alarma_privada",
         "comgen_medidas_camaras_vigilancia", "comgen_medidas_rejas",
@@ -118,11 +122,11 @@ enusc <- enusc %>%
         name.var.pct = "comper_pct"
     ) %>%
     mutate(
-        comper_gasto_medidas = case_when(
-            if_all(rec_vars[["comper_gasto_medidas"]], ~ . %in% c(1:5)) ~ 1,
-            if_all(rec_vars[["comper_gasto_medidas"]], ~ . == 85) ~ 0,
-            if_all(rec_vars[["comper_gasto_medidas"]], ~ . == 88) ~ 88,
-            if_all(rec_vars[["comper_gasto_medidas"]], ~ . == 99) ~ 99,
+        comper_gasto = case_when(
+            if_all(rec_vars[["comper_gasto"]], ~ . %in% c(1:5)) ~ 1,
+            if_all(rec_vars[["comper_gasto"]], ~ . == 85) ~ 0,
+            if_all(rec_vars[["comper_gasto"]], ~ . == 88) ~ 88,
+            if_all(rec_vars[["comper_gasto"]], ~ . == 99) ~ 99,
             TRUE ~ NA
         )
     ) %>%
@@ -168,7 +172,7 @@ enusc <- enusc %>%
 # 3.3 Imputar 85, 88 y 99 --------------------------------------------------------------------------------------------------------------------------------
 
 # Excluir variables de la imputación
-excluir <- c("perper_delito", "comper_gasto_medidas")
+excluir <- c("perper_delito", "comper_gasto")
 rec_vars_torec <- rec_vars[!names(rec_vars) %in% excluir]
 
 # Agregar sufijjo "_rec" a los nombres de las variables

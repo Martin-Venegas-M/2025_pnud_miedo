@@ -47,8 +47,8 @@ rec_vars <- c(
     "emper_ep_pct_rec", "emper_barrio_pct_rec", "emper_casa_pct_rec",
     "perper_delito",
     #"pergen_pais", "pergen_comuna", "pergen_barrio",
-    "comper_pct_rec", #"comper_gasto_medidas",
-    #"comgen_per_pct_rec", 
+    "comper_pct_rec", "comper_gasto",
+   "comgen_per_pct_rec", 
     "comgen_com_pct_rec"
 )
 
@@ -64,13 +64,6 @@ df <- enusc %>%
 
 # Test!
 
-# # Correr mca y plotear
-# mca <- MCA(df, graph = FALSE)
-# plot_mca(mca)
-
-# # Correr cluster y ploteae
-# clust <- FactoMineR::HCPC(mca, nb.clust = 5, consol = FALSE, graph = FALSE)
-# plot_cluster(clust)
 
 # # Probar funcción
 # test <- mca_hcpc(df, nclass = 5)

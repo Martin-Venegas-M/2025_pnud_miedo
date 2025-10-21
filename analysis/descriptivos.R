@@ -49,9 +49,8 @@ metadata_recode <- readxl::read_excel("output/metadata_recode.xlsx")
 vector_rec_vars <- c(
     "emper_ep_pct_rec", "emper_barrio_pct_rec", "emper_casa_pct_rec",
     "perper_delito",
-    # "pergen_pais", "pergen_comuna", "pergen_barrio",
-    "comper_pct_rec", #"comper_gasto_medidas",
-    #"comgen_per_pct_rec", 
+    "comper_pct_rec", "comper_gasto",
+    "comgen_per_pct_rec", 
     "comgen_com_pct_rec"
 )
 
@@ -68,7 +67,9 @@ vector_sec_vars <- c(
     "rph_sexo", "rph_nivel_rec", "rph_edad_rec", "rph_nse",
     "vp_dc", "vp_dv",
     "desordenes_ind_rec", "incivilidades_ind_rec",
-    "info_exp_personal", "info_otras_personas", "info_rrss", "info_prensa"
+    "info_exp_personal", "info_otras_personas", "info_rrss", "info_prensa",
+    "info_tv",
+    "pergen_pais", "pergen_comuna", "pergen_barrio"
 )
 
 sec_vars <- map(
@@ -125,6 +126,9 @@ tab_var_clust <- function(clust_var, vector_vars, save = FALSE, type_var_str) {
     ) %>%
         set_names(str_trunc(glue("{df$vars}-{str_replace(df$clust, clust_var, short_clust_var)}"), 30))
 
+
+    
+    
     # Guardar si es necesario
     if (save) {
         wb_tabs <- reduce(
@@ -146,7 +150,7 @@ tab_var_clust <- function(clust_var, vector_vars, save = FALSE, type_var_str) {
     return(clust_vars)
 }
 
-CLUSTER_A_SACAR <- "clusters_4" # ! IMPORTANTE: Cluster para usar en las tablas
+CLUSTER_A_SACAR <- "clusters_5" # ! IMPORTANTE: Cluster para usar en las tablas
 
 # Crear y guardar tablas de recodificadas x cluster
 rec_clust_vars <- tab_var_clust(

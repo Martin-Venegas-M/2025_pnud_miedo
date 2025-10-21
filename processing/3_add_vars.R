@@ -72,19 +72,20 @@ enusc <- enusc %>%
 
 # 3.3 Crear variables de información -----------------------------------------------------------------------------------------------------------------------
 vec_info <- c("p_fuente_info_barrio_1", "p_fuente_info_com_1", "p_fuente_info_pais_1") # Variables fuente
-
+ 
 # Crear!
 enusc <- enusc %>%
     mutate(
         info_exp_personal = if_else(if_any(all_of(vec_info), ~ . == 1), 1, 0),
         info_otras_personas = if_else(if_any(all_of(vec_info), ~ . %in% c(2:3)), 1, 0),
         info_rrss = if_else(if_any(all_of(vec_info), ~ . == 4), 1, 0),
-        info_prensa = if_else(if_any(all_of(vec_info), ~ . %in% c(5:9)), 1, 0)
+        info_prensa = if_else(if_any(all_of(vec_info), ~ . %in% c(5:9)), 1, 0),
+        info_tv = if_else(if_any(all_of(vec_info), ~ . == 5), 1, 0)
     )
 
 # Manejo explicito de Otros, No sabe y no responde!
 enusc <- reduce(
-    c("info_exp_personal", "info_otras_personas", "info_rrss", "info_prensa"),
+    c("info_exp_personal", "info_otras_personas", "info_rrss", "info_prensa", "info_tv"),
     \(data, var) {
         data %>%
             mutate("{var}" := case_when(
@@ -125,20 +126,21 @@ etiquetas_variables <- c(
     "Se informa por otras personas" = "info_otras_personas",
     "Se informa por RRSS" = "info_rrss",
     "Se informa por prensa" = "info_prensa",
+    "Se informa por TV" = "info_tv",
     "Nivel educacional (rec)" = "rph_nivel_rec",
     "Edad (rec)" = "rph_edad_rec"
 )
 
 etiquetas_valores <- list(
     "desordenes_ind_rec" = c(
-        "Tercil 1 en desordenes" = 1,
-        "Tercil 2 en desordenes" = 2,
-        "Tercil 3 en desordenes" = 3
+        "Baja percepción de desordenes" = 1,
+        "Media percepción de desordenes" = 2,
+        "Alta percepción de desordenes" = 3
     ),
     "incivilidades_ind_rec" = c(
-        "Tercil 1 en incivilidades" = 1,
-        "Tercil 2 en incivilidades" = 2,
-        "Tercil 3 en incivilidades" = 3
+        "Baja percepción de incivilidades" = 1,
+        "Media percepción de incivilidades" = 2,
+        "Alta percepción de incivilidades" = 3
     ),
     "info_exp_personal" = c(
         "Se informa por experiencia personal" = 1,
@@ -163,6 +165,12 @@ etiquetas_valores <- list(
         "No se informa por prensa" = 0,
         "No sabe" = 88,
         "No responde" = 99
+    ),
+    "info_tv" = c(
+      "Se informa por noticias" = 1,
+      "No se informa por noticias" = 0,
+      "No sabe" = 88,
+      "No responde" = 99
     ),
     "rph_nivel_rec" = c(
         "Educación básica o menos" = 1,

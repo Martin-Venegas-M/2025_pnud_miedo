@@ -12,7 +12,7 @@ etiquetas_variables <- c(
     "Aumento delincuencia en el barrio"                          = "pergen_barrio",
     "Modifica comportamiento"                                    = "comper_pct",
     "Modifica comportamiento (rec)"                              = "comper_pct_rec",
-    "Gasta en medidas de seguridad"                              = "comper_gasto_medidas",
+    "Gasta en medidas de seguridad"                              = "comper_gasto",
     "Dispone de medidas de seguridad (personales)"               = "comgen_per_pct",
     "Dispone de medidas de seguridad (personales) (rec)"         = "comgen_per_pct_rec",
     "Disponen de medidas de seguridad (comunitarias)"            = "comgen_com_pct",
@@ -36,7 +36,7 @@ etiquetas_valores <- list(
     ),
     "emper_casa_pct_rec" = c(
         "Alta inseguridad en la casa" = 1,
-        "Baja de inseguridad en la casa" = 0,
+        "Baja inseguridad en la casa" = 0,
         "No aplica" = 85,
         "No sabe" = 88,
         "No responde" = 99
@@ -73,15 +73,15 @@ etiquetas_valores <- list(
         "No sabe" = 88,
         "No responde" = 99
     ),
-    "comper_gasto_medidas" = c(
+    "comper_gasto" = c(
         "Gasta en medidas de seguridad" = 1,
         "No gasta en medidas de seguridad" = 0,
         "No sabe" = 88,
         "No responde" = 99
     ),
     "comgen_per_pct_rec" = c(
-        "Alta disposición de medidas personales" = 1,
-        "Baja disposición de medidas personales" = 0,
+        "Alta disposición de medidas vivienda" = 1,
+        "Baja disposición de medidas vivienda" = 0,
         "No aplica" = 85,
         "No sabe" = 88,
         "No responde" = 99
