@@ -50,8 +50,9 @@ vector_rec_vars <- c(
     "emper_ep_pct_rec", "emper_barrio_pct_rec", "emper_casa_pct_rec",
     "perper_delito",
     # "pergen_pais", "pergen_comuna", "pergen_barrio",
-    "comper_pct_rec", "comper_gasto_medidas",
-    "comgen_per_pct_rec", "comgen_com_pct_rec"
+    "comper_pct_rec", #"comper_gasto_medidas",
+    #"comgen_per_pct_rec", 
+    "comgen_com_pct_rec"
 )
 
 rec_vars <- map(
@@ -139,7 +140,7 @@ tab_var_clust <- function(clust_var, vector_vars, save = FALSE, type_var_str) {
             },
             .init = createWorkbook()
         )
-        saveWorkbook(wb_tabs, glue("output/tables/{date}_{type_var_str}_x_clust{nclust}_vars_tabs.xlsx"), overwrite = TRUE)
+        saveWorkbook(wb_tabs, glue("output/tables/{date}b_{type_var_str}_x_clust{nclust}_vars_tabs.xlsx"), overwrite = TRUE)
     }
 
     return(clust_vars)
@@ -171,7 +172,7 @@ sec_clust_vars <- tab_var_clust(
 wb <- format_tab_excel(rec_vars, sheet = "Recodificadas ponderadas")
 wb <- format_tab_excel(metadata_recode, wb = wb, sheet = "Metadata", var_col = "variable_recodificada", color_header = "#fcd5b4", sep_style = "dashed")
 wb <- format_tab_excel(sec_vars, wb = wb, sheet = "Secundarias ponderadas")
-saveWorkbook(wb, glue("output/tables/{date}_all_vars_tabs.xlsx"), overwrite = TRUE)
+saveWorkbook(wb, glue("output/tables/{date}b_all_vars_tabs.xlsx"), overwrite = TRUE)
 
 # Bivariados recodificadas x secundarias
 wb_tabs <- reduce(
@@ -187,7 +188,7 @@ wb_tabs <- reduce(
     },
     .init = createWorkbook()
 )
-saveWorkbook(wb_tabs, glue("output/tables/{date}_rec_x_sec_vars_tabs.xlsx"), overwrite = TRUE)
+saveWorkbook(wb_tabs, glue("output/tables/{date}b_rec_x_sec_vars_tabs.xlsx"), overwrite = TRUE)
 
 # 4.2 Tablas muestrales ---------------------------------------------------------------------------------------------------------------------------------
 # ! PENDIENTE
